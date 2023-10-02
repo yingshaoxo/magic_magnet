@@ -4,6 +4,8 @@
 
 #include "./dependencies/yingshaoxo_c/c_python.h"
 
+#include <stdio.h>
+
 #define RESPONSE "Hello, World!"
 
 void handle_request(struct http_request_s *request)
@@ -30,7 +32,10 @@ void handle_request(struct http_request_s *request)
 
 int main()
 {
-    struct http_server_s *server = http_server_init(8000, handle_request);
-    http_server_listen(server);
-    printf("done\n");
+    // struct http_server_s *server = http_server_init(8000, handle_request);
+    // http_server_listen(server);
+    // printf("done\n");
+
+    const char* result = ypython_run_command("ls -a");
+    printf("%s", result);
 }
