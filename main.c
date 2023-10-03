@@ -36,6 +36,8 @@ int main()
     // http_server_listen(server);
     // printf("done\n");
 
-    const char* result = ypython_run_command("ls -a");
-    printf("%s", result);
+    // const char* result = ypython_run_command("uname -a");
+    // printf("%s", result);
+
+    // ypython_run("uname -v");
 }
