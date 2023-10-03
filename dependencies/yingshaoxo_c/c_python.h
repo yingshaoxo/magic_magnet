@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <math.h>
 
 /*
 Say hello to yingshaoxo.
@@ -32,6 +33,14 @@ Print formated string.
 //     {                                               \
 //         printf(string_format, __VA_ARGS__);                \
 //     } while (0)
+
+/*
+Get the absolute value of a floating point number.
+*/
+
+double _ypython_get_float_absolute_value(double __x) {
+    return fabs(__x);
+}
 
 /*
 The C library function `void *realloc(void *ptr, size_t size)` attempts to resize the memory block pointed to by `ptr` that was previously allocated with a call to `malloc` or `calloc`.
@@ -233,4 +242,41 @@ Python_like print function.
 void ypython_print(const char *text)
 {
     printf("%s\n", text);
+}
+
+/*
+Float type
+*/
+typedef struct _Float _Float;
+struct _Float {
+    long double value;
+    bool is_none;
+    _Float *(*_Float_add)(_Float *self, _Float *another_float);
+};
+
+_Float *_Float_add(_Float *self, _Float *another_float) {
+    _Float *new_float_value;
+    new_float_value = malloc(sizeof(_Float));
+
+    if (self->is_none || another_float->is_none) {
+        new_float_value->value = 0;
+        new_float_value->is_none = true;
+        return new_float_value;
+    } else {
+        new_float_value->is_none = false;
+        new_float_value->value = self->value + another_float->value;
+        return new_float_value;
+    }
+}
+
+_Float *Float(long double value) {
+    _Float *new_float_value;
+    new_float_value = malloc(sizeof(_Float));
+
+    new_float_value->is_none = false;
+    new_float_value->value = value;
+
+    new_float_value->_Float_add = &_Float_add;
+
+    return new_float_value;
 }
