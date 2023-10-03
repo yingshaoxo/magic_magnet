@@ -34,12 +34,14 @@ void handle_request(struct http_request_s *request)
 
 int main()
 {
-    struct http_server_s *server = http_server_init(8000, handle_request);
-    http_server_listen(server);
-    printf("done\n");
+    // struct http_server_s *server = http_server_init(8000, handle_request);
+    // http_server_listen(server);
+    // printf("done\n");
 
-    // const char* result = ypython_run_command("uname -a");
-    // printf("%s", result);
+    const char* result = ypython_run_command("uname -a");
+    printf("%s", result);
 
     // ypython_run("uname -v");
+
+    // ypython_print("hi, you");
 }

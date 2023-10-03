@@ -207,7 +207,7 @@ const char *ypython_run_command(const char *bash_command_line)
     char *all_lines = _ypython_get_infinate_length_text(FileOpen);
     _ypython_close_subprocess_pipe_stream(FileOpen);
 
-    return ypython_string_strip(all_lines);
+    return all_lines;
 }
 
 /*
