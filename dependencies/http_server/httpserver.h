@@ -1054,12 +1054,16 @@ void http_respond_chunk_end(http_request_t *request,
 
 http_string_t http_request_method(http_request_t *request)
 {
-    return hs_get_token_string(request, HSH_TOK_METHOD);
+    http_string_t result = hs_get_token_string(request, HSH_TOK_METHOD);
+    char * seperation_object = strtok((char*)result.char_list, " ");
+    return (http_string_t){seperation_object, strlen(seperation_object)};
 }
 
 http_string_t http_request_target(http_request_t *request)
 {
-    return hs_get_token_string(request, HSH_TOK_TARGET);
+    http_string_t result = hs_get_token_string(request, HSH_TOK_TARGET);
+    char * seperation_object = strtok((char*)result.char_list, " ");
+    return (http_string_t){seperation_object, strlen(seperation_object)};
 }
 
 http_string_t http_request_body(http_request_t *request)

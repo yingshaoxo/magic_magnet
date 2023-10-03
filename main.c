@@ -10,18 +10,20 @@
 
 void handle_request(struct http_request_s *request)
 {
-    // http_string_t body = http_request_body(request);
-    // printf("\n%s\n", body.buf);
 
-    // http_string_t jwt = http_request_header(request, "jwt");
-    // printf("\n%s\n", jwt.buf);
+    http_string_t url = http_request_target(request);
+    printf("\n%s\n", url.char_list);
+
+    http_string_t body = http_request_body(request);
+    printf("\n%s\n", body.char_list);
+
+    http_string_t jwt = http_request_header(request, "jwt");
+    printf("\n%s\n", jwt.char_list);
 
     http_string_t method = http_request_method(request);
-    // int split_length = 0;
-    // ss* parts = ss_split_raw(method.char_list, ' ', &split_length);
-    // printf("\n%s\n", parts[0]->buf);
+    printf("\n%s\n", method.char_list);
 
-    hello_yingshaoxo();
+    printf("\n\n______________________\n\n");
 
     struct http_response_s *response = http_response_init();
     http_response_status(response, 200);
@@ -32,9 +34,9 @@ void handle_request(struct http_request_s *request)
 
 int main()
 {
-    // struct http_server_s *server = http_server_init(8000, handle_request);
-    // http_server_listen(server);
-    // printf("done\n");
+    struct http_server_s *server = http_server_init(8000, handle_request);
+    http_server_listen(server);
+    printf("done\n");
 
     // const char* result = ypython_run_command("uname -a");
     // printf("%s", result);
