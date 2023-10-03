@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  magic_magnet:
+    #network_mode: "host"        
+    build: 
+      context: ./
+      dockerfile: ./Dockerfile_magic_magnet
+    image: yingshaoxo/static_magic_magnet
+    volumes:
+      - "./data:/build2"
+    restart: "no"
+    #restart: unless-stopped

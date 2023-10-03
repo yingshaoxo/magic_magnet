@@ -1,0 +1,16 @@
+FROM alpine:3.12
+
+RUN apk add musl-dev gcc
+
+COPY . /temp
+WORKDIR /temp
+
+# CMD sleep 999999999999
+
+RUN gcc -no-pie -g0 -s -std=c99 -static -D_POSIX_SOURCE -o /temp/main.run main.c
+
+RUN mkdir -p /build/
+RUN cp /temp/main.run /build/
+
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]

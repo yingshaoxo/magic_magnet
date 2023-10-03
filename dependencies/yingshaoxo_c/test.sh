@@ -2,11 +2,9 @@
 
 c_compiler=/usr/bin/musl-gcc
 
-CFLAGS="-std=c99 -static -D_POSIX_SOURCE"
-
 mkdir -p dist/
 
-$c_compiler $CFLAGS -o dist/test.run _test.c
+$c_compiler -g0 -s -std=c99 -static -D_POSIX_SOURCE -no-pie -o dist/test.run _test.c
 
 echo "./dist/test.run"
 ./dist/test.run

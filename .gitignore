@@ -1,6 +1,7 @@
 .vscode/
 dist/
 build/
+data/
 
 # Prerequisites
 *.d

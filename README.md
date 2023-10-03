@@ -9,3 +9,15 @@ A torrent client that implements yingshaoxo torrent protocol.
 2. When a client open a new torrent, I mean seeding. That client will do a report to the tracker with the following infomation: {"has_public_ip": "*.*.*.*", "hash": "", "size": 100}
 
 3. When a client want to download a file with certain hash from a magnet link, it will do a asking to the tracker. If the tracker found there has a resource that matchs the hash code, if the seeder has public ip address, then it will let the client do a download directly from that seeder, otherwise, if that seeder does not have an public ip address, then the tracker will ask the seeder to upload its resources first, then transfer it to the client that asks the resources.
+
+
+## How to compile it?
+
+```
+sudo docker-compose -f docker-compose.magic_magnet.yaml up --build
+```
+
+If anything goes wrong, you may want to get into the docker container to fix it:
+```
+sudo docker exec -it --user=root 3d86fb657430 /bin/sh
+```
