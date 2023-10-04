@@ -21,11 +21,11 @@ int main()
 
     //////////////////////////////////////////////////////
 
-    _Float *a_float = Float(3.2);
+    Type_Ypython_Float *a_float = Ypython_Float(3.2);
     _ypython_print_formated_string("%.3Lf\n", a_float->value);
 
-    _Float *another_float = Float(1.8);
-    _Float *sum = a_float->_Float_add(a_float, another_float);
+    Type_Ypython_Float *another_float = Ypython_Float(1.8);
+    Type_Ypython_Float *sum = a_float-> function_add(a_float, another_float);
     _ypython_print_formated_string("%.3Lf\n", sum->value);
 
     long double sum_float = 5.0;
@@ -35,4 +35,28 @@ int main()
 
     //////////////////////////////////////////////////////
 
+    Type_Ypython_Int *a_int = Ypython_Int(3);
+    _ypython_print_formated_string("%lld\n", a_int->value);
+
+    Type_Ypython_Int *another_int = Ypython_Int(2);
+    Type_Ypython_Int *sum_int = a_int-> function_add(a_int, another_int);
+    _ypython_print_formated_string("%lld\n", sum_int->value);
+
+    long long sum_int2 = 5;
+    if (sum_int2 != sum_int->value) {
+        _ypython_print_formated_string("%lld should equal to %lld\n", sum_int->value, sum_int2);
+    }
+
+    //////////////////////////////////////////////////////
+
+    Type_Ypython_String *a_string = Ypython_String("yingshaoxo");
+    ypython_print(a_string->value);
+
+    Type_Ypython_String *another_string = Ypython_String(" is super nice.");
+    Type_Ypython_String *final_string = a_string->function_add(a_string, another_string);
+
+    const char* target_string = "yingshaoxo is super nice.";
+    if (_ypython_string_compare(target_string, final_string->value)) {
+        _ypython_print_formated_string("'%s' should equal to '%s'", final_string->value, target_string);
+    }
 }

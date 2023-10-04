@@ -104,6 +104,15 @@ int _ypython_string_compare(const char *str1, const char *str2)
 }
 
 /*
+The C library function `char *strcat(char *dest, const char *src)` appends the string pointed to by src to the end of the string pointed to by dest.
+In other words, second string will get added to the end of the first string.
+*/
+char *_ypython_string_adding(char *dest, const char *src) {
+    return strcat(dest, src);
+}
+
+
+/*
 ##################################################
 Let's use those built-in c functions to do some useful things
 ##################################################
@@ -244,19 +253,143 @@ void ypython_print(const char *text)
     printf("%s\n", text);
 }
 
+
+/*
+##################################################
+Let's create some built-in data types that similar to python data types
+For example, str, double, int, bool, dict, list and so on
+##################################################
+*/
+
+/*
+String type
+*/
+typedef struct Type_Ypython_String Type_Ypython_String;
+struct Type_Ypython_String {
+    char *value;
+    bool is_none;
+    Type_Ypython_String *(*function_add)(Type_Ypython_String *self, Type_Ypython_String *another_string);
+};
+
+Type_Ypython_String *Type_Ypython_String_add(Type_Ypython_String *self, Type_Ypython_String *another_string) {
+    Type_Ypython_String *new_string_value;
+    new_string_value = malloc(sizeof(Type_Ypython_String));
+
+    if (self->is_none || another_string->is_none) {
+        new_string_value->value = "";
+        new_string_value->is_none = true;
+    } else {
+        new_string_value->is_none = false;
+
+        size_t total_length = _ypython_get_string_length(self->value) + _ypython_get_string_length(another_string->value);
+        char *new_chars_value = malloc(total_length);
+        snprintf(new_chars_value, total_length+1, "%s%s", self->value, another_string->value);
+
+        new_string_value->value = new_chars_value;
+    }
+
+    return new_string_value;
+}
+
+Type_Ypython_String *Ypython_String(char *value) {
+    Type_Ypython_String *new_string_value;
+    new_string_value = malloc(sizeof(Type_Ypython_String));
+
+    new_string_value->is_none = false;
+    new_string_value->value = value;
+
+    new_string_value->function_add = &Type_Ypython_String_add;
+
+    return new_string_value;
+}
+
+/*
+Bool type
+*/
+typedef struct Type_Ypython_Bool Type_Ypython_Bool;
+struct Type_Ypython_Bool {
+    bool value;
+    bool is_none;
+};
+
+Type_Ypython_Bool *Ypython_Bool(bool value) {
+    Type_Ypython_Bool *new_bool_value;
+    new_bool_value = malloc(sizeof(Type_Ypython_Bool));
+
+    new_bool_value->is_none = false;
+    new_bool_value->value = value;
+
+    return new_bool_value;
+}
+
+/*
+Int type
+*/
+typedef struct Type_Ypython_Int Type_Ypython_Int;
+struct Type_Ypython_Int {
+    long long value;
+    bool is_none;
+    Type_Ypython_Int *(*function_add)(Type_Ypython_Int *self, Type_Ypython_Int *another_int);
+    Type_Ypython_Int *(*function_multiply)(Type_Ypython_Int *self, Type_Ypython_Int *another_int);
+};
+
+Type_Ypython_Int *Type_Ypython_Int_add(Type_Ypython_Int *self, Type_Ypython_Int *another_int) {
+    Type_Ypython_Int *new_int_value;
+    new_int_value = malloc(sizeof(Type_Ypython_Int));
+
+    if (self->is_none || another_int->is_none) {
+        new_int_value->value = 0;
+        new_int_value->is_none = true;
+        return new_int_value;
+    } else {
+        new_int_value->is_none = false;
+        new_int_value->value = self->value + another_int->value;
+        return new_int_value;
+    }
+}
+
+Type_Ypython_Int *Type_Ypython_Int_multiply(Type_Ypython_Int *self, Type_Ypython_Int *another_int) {
+    Type_Ypython_Int *new_int_value;
+    new_int_value = malloc(sizeof(Type_Ypython_Int));
+
+    if (self->is_none || another_int->is_none) {
+        new_int_value->value = 0;
+        new_int_value->is_none = true;
+        return new_int_value;
+    } else {
+        new_int_value->is_none = false;
+        new_int_value->value = self->value * another_int->value;
+        return new_int_value;
+    }
+}
+
+Type_Ypython_Int *Ypython_Int(long long value) {
+    Type_Ypython_Int *new_int_value;
+    new_int_value = malloc(sizeof(Type_Ypython_Int));
+
+    new_int_value->is_none = false;
+    new_int_value->value = value;
+
+    new_int_value->function_add = &Type_Ypython_Int_add;
+    new_int_value->function_multiply = &Type_Ypython_Int_multiply;
+
+    return new_int_value;
+}
+
 /*
 Float type
 */
-typedef struct _Float _Float;
-struct _Float {
+typedef struct Type_Ypython_Float Type_Ypython_Float;
+struct Type_Ypython_Float {
     long double value;
     bool is_none;
-    _Float *(*_Float_add)(_Float *self, _Float *another_float);
+    Type_Ypython_Float *(*function_add)(Type_Ypython_Float *self, Type_Ypython_Float *another_float);
+    Type_Ypython_Float *(*function_multiply)(Type_Ypython_Float *self, Type_Ypython_Float *another_float);
 };
 
-_Float *_Float_add(_Float *self, _Float *another_float) {
-    _Float *new_float_value;
-    new_float_value = malloc(sizeof(_Float));
+Type_Ypython_Float *Type_Ypython_Float_add(Type_Ypython_Float *self, Type_Ypython_Float *another_float) {
+    Type_Ypython_Float *new_float_value;
+    new_float_value = malloc(sizeof(Type_Ypython_Float));
 
     if (self->is_none || another_float->is_none) {
         new_float_value->value = 0;
@@ -269,14 +402,30 @@ _Float *_Float_add(_Float *self, _Float *another_float) {
     }
 }
 
-_Float *Float(long double value) {
-    _Float *new_float_value;
-    new_float_value = malloc(sizeof(_Float));
+Type_Ypython_Float *Type_Ypython_Float_multiply(Type_Ypython_Float *self, Type_Ypython_Float *another_float) {
+    Type_Ypython_Float *new_float_value;
+    new_float_value = malloc(sizeof(Type_Ypython_Float));
+
+    if (self->is_none || another_float->is_none) {
+        new_float_value->value = 0;
+        new_float_value->is_none = true;
+        return new_float_value;
+    } else {
+        new_float_value->is_none = false;
+        new_float_value->value = self->value * another_float->value;
+        return new_float_value;
+    }
+}
+
+Type_Ypython_Float *Ypython_Float(long double value) {
+    Type_Ypython_Float *new_float_value;
+    new_float_value = malloc(sizeof(Type_Ypython_Float));
 
     new_float_value->is_none = false;
     new_float_value->value = value;
 
-    new_float_value->_Float_add = &_Float_add;
+    new_float_value->function_add = &Type_Ypython_Float_add;
+    new_float_value->function_multiply = &Type_Ypython_Float_multiply;
 
     return new_float_value;
 }
