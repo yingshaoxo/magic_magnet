@@ -291,6 +291,7 @@ struct Type_Ypython_String {
     bool is_none;
     char *type;
     Type_Ypython_String *(*function_add)(Type_Ypython_String *self, Type_Ypython_String *another_string);
+    bool (*function_is_equal)(Type_Ypython_String *self, Type_Ypython_String *another_string);
 };
 
 Type_Ypython_String *Type_Ypython_String_add(Type_Ypython_String *self, Type_Ypython_String *another_string) {
@@ -314,6 +315,24 @@ Type_Ypython_String *Type_Ypython_String_add(Type_Ypython_String *self, Type_Ypy
     return new_string_value;
 }
 
+bool Type_Ypython_String_is_equal(Type_Ypython_String *self, Type_Ypython_String *another_string) {
+    if (self->is_none && another_string->is_none) {
+        return true;
+    }
+    else if ((!(self->is_none)) && (another_string->is_none)) {
+        return false;
+    }
+    else if ((self->is_none) && (!(another_string->is_none))) {
+        return false;
+    } else {
+        if (_ypython_string_compare(self->value, another_string->value) == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
 Type_Ypython_String *Ypython_String(char *value) {
     Type_Ypython_String *new_string_value;
     new_string_value = malloc(sizeof(Type_Ypython_String));
@@ -323,6 +342,7 @@ Type_Ypython_String *Ypython_String(char *value) {
     new_string_value->value = value;
 
     new_string_value->function_add = &Type_Ypython_String_add;
+    new_string_value->function_is_equal = &Type_Ypython_String_is_equal;
 
     return new_string_value;
 }

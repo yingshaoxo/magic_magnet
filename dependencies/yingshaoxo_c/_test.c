@@ -55,8 +55,8 @@ int main()
     Type_Ypython_String *another_string = Ypython_String(" is super nice.");
     Type_Ypython_String *final_string = a_string->function_add(a_string, another_string);
 
-    const char* target_string = "yingshaoxo is super nice.";
-    if (_ypython_string_compare(target_string, final_string->value)) {
-        _ypython_print_formated_string("'%s' should equal to '%s'", final_string->value, target_string);
+    Type_Ypython_String *target_string = Ypython_String("yingshaoxo is super nice.");
+    if (!(target_string->function_is_equal(target_string, final_string))) {
+        _ypython_print_formated_string("'%s' should equal to '%s'\n", final_string->value, target_string->value);
     }
 }
