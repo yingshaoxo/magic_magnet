@@ -111,12 +111,42 @@ char *_ypython_string_adding(char *dest, const char *src) {
     return strcat(dest, src);
 }
 
+/*
+The C library function `char *strstr(const char *haystack, const char *needle)` function finds the first occurrence of the substring needle in the string haystack. 
+It will return null pointer if the sub_sequence is not present in haystack.
+The terminating '\0' characters are not compared.
+*/
+char *_ypython_find_the_first_sub_string_in_a_string(const char *a_string, const char *sub_string) {
+    return strstr(a_string, sub_string);
+}
+
 
 /*
 ##################################################
 Let's use those built-in c functions to do some useful things
 ##################################################
 */
+
+bool _ypython_string_is_sub_string(const char *a_string, const char *sub_string) {
+    if (_ypython_find_the_first_sub_string_in_a_string(a_string, sub_string) != NULL) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+long long _ypython_string_count_sub_string(const char *a_string, const char *sub_string) {
+    long long counting = 0;
+    const char *temprary = a_string;
+    temprary = _ypython_find_the_first_sub_string_in_a_string(temprary, sub_string);
+    while (temprary != NULL) {
+        counting++;
+
+        temprary++;
+        temprary = _ypython_find_the_first_sub_string_in_a_string(temprary, sub_string);
+    }
+    return counting;
+}
 
 bool _ypython_is_general_space(char c)
 {

@@ -14,7 +14,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <signal.h>
 
 #define BUFFER_SIZE 104857600
 
@@ -230,13 +229,13 @@ void *handle_client(void *arg)
 
 void start_server()
 {
-    // Get the current time.
-    time_t start = time(NULL);
-    // Wait for 60 seconds.
-    while (time(NULL) < start + 60)
-    {
-        ;
-    }
+    // // Get the current time.
+    // time_t start = time(NULL);
+    // // Wait for 60 seconds.
+    // while (time(NULL) < start + 60)
+    // {
+    //     ;
+    // }
 
     int PORT = 8055;
     int server_fd;
@@ -270,7 +269,7 @@ void start_server()
         exit(EXIT_FAILURE);
     }
 
-    printf("Server listening on port %d\n", PORT);
+    printf("\nServer listening on port %d\n", PORT);
     while (1)
     {
         // client info

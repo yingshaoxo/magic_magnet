@@ -59,4 +59,18 @@ int main()
     if (!(target_string->function_is_equal(target_string, final_string))) {
         _ypython_print_formated_string("'%s' should equal to '%s'\n", final_string->value, target_string->value);
     }
+
+    //////////////////////////////////////////////////////
+
+    if (!_ypython_string_is_sub_string("abc", "ab")) {
+        ypython_print("'ab' should be a substring of 'abc'");
+    };
+
+    if (_ypython_string_is_sub_string("abc", "ac")) {
+        ypython_print("'ab' should not be a substring of 'abc'");
+    };
+
+    if (_ypython_string_count_sub_string("abc abc acbc", "abc") != 2) {
+        ypython_print("'abc' should appeared 2 times in 'abc abc acbc'");
+    };
 }
