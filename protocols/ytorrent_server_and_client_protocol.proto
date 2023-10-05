@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+/*
+## Yingshaoxo Torrent Protocol
+
+1. For all those clients, it will need at least one tracker service. That service has an public ip address. It only need to have one open port.
+
+2. When a client open a new torrent, I mean seeding. That client will do a report to the tracker with the following infomation: {"has_public_ip": "*.*.*.*", "hash": "", "size": 100}
+
+3. When a client want to download a file with certain hash from a magnet link, it will do a asking to the tracker. If the tracker found there has a resource that matchs the hash code, if the seeder has public ip address, then it will let the client do a download directly from that seeder, otherwise, if that seeder does not have an public ip address, then the tracker will ask the seeder to upload its resources first, then transfer it to the client that asks the resources.
+*/
+
+service ytorrent_service {
+    rpc seed (Seed_Request) returns (Seed_Response); // user should do this every 30 seconds
+    rpc search (Search_Request) returns (Search_Response);
+    rpc download (Download_Request) returns (Download_Response);
+    rpc upload (Upload_Request) returns (Upload_Response);
+}
+
+message A_Resource {
+    string name = 1;
+    bool is_single_file = 2; // in client, when search, show single file first
+    string file_or_folder_hash = 3; // server will save this information into a dict where key is the file_or_folder_hash, where value is a list of A_Resource object
+    string file_or_folder_size_in_kb = 4; // just a symbol for human reading, may wrong
+    repeated string folder_path_list_relative_to_root_folder = 5;
+    repeated string file_path_list_relative_to_root_folder = 6;
+    repeated string file_path_content_hash_list = 7;
+}
+
+message Need_To_Upload_Notification {
+    string file_or_folder_hash = 1;
+    string file_path_relative_to_root_folder = 2; // if this is a single file, ignore it 
+    int64 file_segment_size_in_kb = 3; // by default, the server will only accept 1MB segment request, but it can get changed in envirnoment configuration
+    int64 segment_number = 4; // start from 1
+}
+
+message Seed_Request {
+    A_Resource a_resource = 1;
+}
+
+message Seed_Response {
+    string error = 1;
+    string success = 2;
+    bool someone_needs_you_to_upload_your_file = 3;
+    repeated Need_To_Upload_Notification need_to_upload_notification_list = 4;
+}
+
+message Upload_Request {
+    Need_To_Upload_Notification need_to_upload_notification = 1;
+    string file_segment_bytes_in_base64 = 2;
+}
+
+message Upload_Response {
+    string error = 1;
+    string success = 2;
+}
+
+message Search_Request {
+    string search_input = 1;
+    int64 page_size = 2;
+    int64 page_number = 3;
+}
+
+message Search_Response {
+    optional string error = 1;
+    repeated A_Resource resource_list = 2;
+}
+
+message Download_Request {
+    string file_or_folder_hash = 1;
+    string file_path_relative_to_root_folder = 2; // if this is a single file, ignore it 
+    int64 file_segment_size_in_kb = 3; // by default, the server will only accept 1MB segment request, but it can get changed in envirnoment configuration
+    int64 segment_number = 4; // start from 1
+}
+
+message Download_Response {
+    string error = 1;
+    bool try_it_later_when_other_need_to_upload = 2;
+    string file_segment_bytes_in_base64 = 3;
+}

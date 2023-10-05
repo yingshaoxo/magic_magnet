@@ -1,0 +1,4 @@
+syntax = "proto3";
+
+service ytorrent_ui_service {
+}
