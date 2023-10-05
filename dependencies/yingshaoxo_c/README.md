@@ -1,6 +1,8 @@
 # ypython
 A single header version of python for c.
 
+> 'y' here means 'yingshaoxo'. The full name should be "yingshaoxo's python".
+
 ## Ideas
 ### How to use python to write a c dependencies manager or compiler?
 
