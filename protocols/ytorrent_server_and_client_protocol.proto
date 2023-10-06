@@ -11,10 +11,20 @@ syntax = "proto3";
 */
 
 service ytorrent_service {
-    rpc seed (Seed_Request) returns (Seed_Response); // user should do this every 30 seconds
+    rpc seed (Seed_Request) returns (Seed_Response); // user should do this almost all the time, the default polling time is 60 seconds
     rpc search (Search_Request) returns (Search_Response);
-    rpc download (Download_Request) returns (Download_Response);
+    rpc download (Download_Request) returns (Download_Response); // user should do this almost all the time if they want to download something, the default polling time is 60 seconds
     rpc upload (Upload_Request) returns (Upload_Response);
+}
+
+message Server_Config {
+    int64 file_segments_memory_pool_size_in_mb = 1; // default 1000 mb
+    int64 max_acceptable_file_segment_size_in_mb = 2; // default 1 mb
+    int64 polling_waiting_time_in_seconds = 3; // default 60 seconds
+}
+
+message Client_Config {
+    repeated string tracker_ip_or_url_list = 1;  // it is actually the server service ip/url, if non of those tracker is avaliable, then the search will return offline 'built-in chat data', for example, 'yingshaoxo's saying'
 }
 
 message A_Resource {
@@ -32,6 +42,8 @@ message Need_To_Upload_Notification {
     string file_path_relative_to_root_folder = 2; // if this is a single file, ignore it 
     int64 file_segment_size_in_kb = 3; // by default, the server will only accept 1MB segment request, but it can get changed in envirnoment configuration
     int64 segment_number = 4; // start from 1
+    string _current_time_in_timestamp = 5;
+    bool _lock = 6;
 }
 
 message Seed_Request {
