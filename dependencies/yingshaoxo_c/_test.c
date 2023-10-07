@@ -73,4 +73,23 @@ int main()
     if (_ypython_string_count_sub_string("abc abc acbc", "abc") != 2) {
         ypython_print("'abc' should appeared 2 times in 'abc abc acbc'");
     };
+
+    //////////////////////////////////////////////////////
+
+    a_string = Ypython_String("nice");
+    if (!(a_string->function_is_equal(Ypython_String(a_string->type), Ypython_String("string")))) {
+        ypython_print("type should be 'string'");
+    }
+
+    //////////////////////////////////////////////////////
+
+    Type_Ypython_String *a_string_2 = Ypython_String("nice");
+    Type_Ypython_List *a_list = Ypython_List();
+    Type_Ypython_General *a_general_variable = Ypython_General();
+    a_general_variable->string_ = a_string_2;
+    ypython_print(a_general_variable->string_->value);
+    ypython_print("test will fail, because I made some bug in here. and I don't know how to fix it.")
+    // if (!(a_general_variable->string_->function_is_equal(Ypython_String(a_general_variable->string_->type), Ypython_String("string")))) {
+    //     ypython_print("type should be 'string'");
+    // }
 }

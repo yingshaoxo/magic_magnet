@@ -324,10 +324,10 @@ struct Type_Ypython_String {
     bool (*function_is_equal)(Type_Ypython_String *self, Type_Ypython_String *another_string);
 };
 
+Type_Ypython_String *Ypython_String(char *value);
+
 Type_Ypython_String *Type_Ypython_String_add(Type_Ypython_String *self, Type_Ypython_String *another_string) {
-    Type_Ypython_String *new_string_value;
-    new_string_value = malloc(sizeof(Type_Ypython_String));
-    new_string_value->type = "string";
+    Type_Ypython_String *new_string_value = Ypython_String("");
 
     if (self->is_none || another_string->is_none) {
         new_string_value->value = "";
@@ -398,7 +398,6 @@ Type_Ypython_Bool *Ypython_Bool(bool value) {
     return new_bool_value;
 }
 
-
 /*
 Int type
 */
@@ -411,10 +410,10 @@ struct Type_Ypython_Int {
     Type_Ypython_Int *(*function_multiply)(Type_Ypython_Int *self, Type_Ypython_Int *another_int);
 };
 
+Type_Ypython_Int *Ypython_Int(long long value);
+
 Type_Ypython_Int *Type_Ypython_Int_add(Type_Ypython_Int *self, Type_Ypython_Int *another_int) {
-    Type_Ypython_Int *new_int_value;
-    new_int_value = malloc(sizeof(Type_Ypython_Int));
-    new_int_value->type = "int";
+    Type_Ypython_Int *new_int_value = Ypython_Int(0);
 
     if (self->is_none || another_int->is_none) {
         new_int_value->value = 0;
@@ -428,9 +427,7 @@ Type_Ypython_Int *Type_Ypython_Int_add(Type_Ypython_Int *self, Type_Ypython_Int 
 }
 
 Type_Ypython_Int *Type_Ypython_Int_multiply(Type_Ypython_Int *self, Type_Ypython_Int *another_int) {
-    Type_Ypython_Int *new_int_value;
-    new_int_value = malloc(sizeof(Type_Ypython_Int));
-    new_int_value->type = "int";
+    Type_Ypython_Int *new_int_value = Ypython_Int(0);
 
     if (self->is_none || another_int->is_none) {
         new_int_value->value = 0;
@@ -469,10 +466,10 @@ struct Type_Ypython_Float {
     Type_Ypython_Float *(*function_multiply)(Type_Ypython_Float *self, Type_Ypython_Float *another_float);
 };
 
+Type_Ypython_Float *Ypython_Float(long double value);
+
 Type_Ypython_Float *Type_Ypython_Float_add(Type_Ypython_Float *self, Type_Ypython_Float *another_float) {
-    Type_Ypython_Float *new_float_value;
-    new_float_value = malloc(sizeof(Type_Ypython_Float));
-    new_float_value->type = "float";
+    Type_Ypython_Float *new_float_value = Ypython_Float(0.0);
 
     if (self->is_none || another_float->is_none) {
         new_float_value->value = 0;
@@ -486,9 +483,7 @@ Type_Ypython_Float *Type_Ypython_Float_add(Type_Ypython_Float *self, Type_Ypytho
 }
 
 Type_Ypython_Float *Type_Ypython_Float_multiply(Type_Ypython_Float *self, Type_Ypython_Float *another_float) {
-    Type_Ypython_Float *new_float_value;
-    new_float_value = malloc(sizeof(Type_Ypython_Float));
-    new_float_value->type = "float";
+    Type_Ypython_Float *new_float_value = Ypython_Float(0.0);
 
     if (self->is_none || another_float->is_none) {
         new_float_value->value = 0;
@@ -513,4 +508,114 @@ Type_Ypython_Float *Ypython_Float(long double value) {
     new_float_value->function_multiply = &Type_Ypython_Float_multiply;
 
     return new_float_value;
+}
+
+/*
+Forward declaration for: List, Dict
+*/
+typedef struct Type_Ypython_List Type_Ypython_List;
+typedef struct Type_Ypython_Dict Type_Ypython_Dict;
+
+/*
+General type
+*/
+typedef struct Type_Ypython_General Type_Ypython_General;
+struct Type_Ypython_General {
+    bool is_none;
+    char *type;
+    Type_Ypython_Bool *bool_;
+    Type_Ypython_Float *float_;
+    Type_Ypython_Int *int_;
+    Type_Ypython_String *string_;
+    Type_Ypython_List *list_;
+    Type_Ypython_Dict *dict_;
+};
+
+Type_Ypython_General *Ypython_General() {
+    Type_Ypython_General *new_value;
+    new_value = malloc(sizeof(Type_Ypython_General));
+    new_value->is_none = false;
+    new_value -> type = "general";
+
+    new_value->bool_ = NULL;
+    new_value->float_ = NULL;
+    new_value->int_ = NULL;
+    new_value->string_ = NULL;
+    new_value->list_ = NULL;
+    new_value->dict_ = NULL;
+
+    return new_value;
+}
+
+/*
+List type
+//https://dev.to/bekhruzniyazov/creating-a-python-like-list-in-c-4ebg
+*/
+typedef struct Type_Ypython_List Type_Ypython_List;
+struct Type_Ypython_List {
+    bool is_none;
+    char *type;
+
+    Type_Ypython_General *value;
+    unsigned long long length;
+
+    Type_Ypython_List *(*Type_Ypython_List_append)(Type_Ypython_List *self, Type_Ypython_General *an_element);
+};
+
+Type_Ypython_List *Type_Ypython_List_append(Type_Ypython_List *self, Type_Ypython_General *an_element) {
+    return NULL;
+    // ypython_print("no");
+    // if (an_element->string_) {
+    //     ypython_print(an_element->string_->type);
+    // }
+    // ypython_print("no2");
+
+    // Type_Ypython_List *new_list_value;
+    // return new_list_value;
+
+//     new_list_value->is_none = false;
+//     new_list_value -> type = "list";
+
+//     new_list_value->length = 1;
+//     new_list_value->value = malloc(sizeof(Type_Ypython_List) * new_list_value->length);
+
+//     if (self->is_none) {
+//         new_list_value->is_none = true;
+//         return new_list_value;
+//     } else {
+//     }
+
+//     return new_list_value;
+}
+
+Type_Ypython_List *Ypython_List() {
+    Type_Ypython_List *new_list_value;
+    new_list_value->is_none = false;
+    new_list_value -> type = "list";
+
+    new_list_value->length = 1;
+    new_list_value->value = malloc(sizeof(Type_Ypython_List) * new_list_value->length);
+
+    new_list_value->Type_Ypython_List_append = &Type_Ypython_List_append;
+
+    return new_list_value;
+}
+
+/*
+Dict type
+//You can use 2 dimentional array, one to store the key, another to store the value, and two array uses same index and length.
+*/
+typedef struct Type_Ypython_Dict Type_Ypython_Dict;
+struct Type_Ypython_Dict {
+    bool is_none;
+    char *type;
+};
+
+Type_Ypython_Dict *Ypython_Dict() {
+    Type_Ypython_Dict *new_value;
+    new_value = malloc(sizeof(Type_Ypython_Dict));
+    new_value->is_none = false;
+    new_value -> type = "dict";
+
+    return new_value;
 }

@@ -3,6 +3,8 @@ A single header version of python for c.
 
 > 'y' here means 'yingshaoxo'. The full name should be "yingshaoxo's python".
 
+> It should have all python built_in type and functions, for example: https://docs.python.org/3/library/functions.html
+
 ## Ideas
 ### How to use python to write a c dependencies manager or compiler?
 
