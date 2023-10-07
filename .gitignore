@@ -1,3 +1,5 @@
+database_data/
+
 .venv/
 .vscode/
 .python_modules/
