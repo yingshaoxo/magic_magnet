@@ -1,0 +1,140 @@
+import socket
+import multiprocessing
+from time import sleep
+
+
+multiprocess_manager = multiprocessing.Manager()
+
+
+def handle_request(method: str, url: str, headers: dict, payload: str):
+    print(method)
+    print(url)
+    print(headers)
+    print(payload)
+    return url
+
+
+def handle_socket_request(conn):
+    try:
+        method = None
+        url = None
+        http_standards = None
+
+        raw_http_request = conn.recv(1024).decode("utf-8")
+        #print(raw_http_request)
+        #print(repr(raw_http_request))
+
+        splits = raw_http_request.strip().split("\n")
+        if (len(splits) > 0):
+            head_line = splits[0]
+            head_line_splits = head_line.split(" ")
+            if len(head_line_splits) == 3:
+                method, url, http_standards = head_line_splits 
+        
+        if (method == None or url == None or http_standards == None):
+            print(f"Unkonw http request:\n{raw_http_request}")
+            exit()
+        else:
+            pass
+            #print(f"request:\n{splits[0]}")
+
+        raw_headers_lines = splits[1:] 
+        raw_headers_lines = [line for line in raw_headers_lines if ": " in line]
+        headers_dict = {}
+        for line in raw_headers_lines:
+            header_splits = line.split(": ")
+            key = header_splits[0]
+            value = ":".join(header_splits[1:])
+            headers_dict[key] = value
+
+        content_length = None
+        payload = None
+        payload_seperator = "\r\n\r\n"
+        if "Content-Length" in headers_dict:
+            content_length = int(headers_dict["Content-Length"])
+        
+        if content_length != None:
+            # receive the rest of data by using socket receiv
+            payload_splits = raw_http_request.split(payload_seperator)
+            if len(payload_splits) >= 2:
+                payload = payload_splits[1]
+                if len(payload) >= content_length:
+                    pass
+                else:
+                    while True:
+                        payload += conn.recv(1024).decode("utf-8")
+                        if len(payload) >= content_length:
+                            break
+
+        # do the process directly
+        splits = raw_http_request.split(payload_seperator)
+        header_line_list = splits[0].split("\n")[1:]
+        headers_dict = {}
+        for line in header_line_list:
+            header_splits = line.split(": ")
+            key = header_splits[0]
+            value = (":".join(header_splits[1:])).strip()
+            headers_dict[key] = value
+
+        #print(f"headers:\n{headers_dict}")
+        #print(f"payload:\n{payload}")
+        text_response = handle_request(method, url, headers_dict, payload)
+
+        response = f"HTTP/1.1 200 OK\r\n\r\n{text_response}"
+        # If you want to return json, you have to return:
+        """
+        HTTP/1.1 200 OK
+        Content-Type: application/json
+        Content-Length: 19
+
+        {"success":"true"}
+        """
+
+        conn.sendall(response.encode("utf-8"))
+    except Exception as e:
+        print(e)
+        response = f"HTTP/1.1 200 OK\r\n\r\n{e}"
+        conn.sendall(response.encode("utf-8"))
+    finally:
+        conn.shutdown(1)
+        conn.close()
+        exit()
+
+if __name__ == "__main__":
+    try:
+        host = "0.0.0.0"
+        port = 1212
+
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        server.bind((host, port))
+        server.listen(1)
+
+        print(f"Service in on {host}:{port}")
+
+        process_list = []
+        #global_socket_list = multiprocess_manager.list()
+
+        while True:
+            conn, addr = server.accept()
+            process = multiprocessing.Process(target=handle_socket_request, args=(conn, ))
+            process.start()
+            process_list.append(process)
+
+            new_process_list = []
+            for a_process in process_list:
+                if a_process.is_alive():
+                    new_process_list.append(a_process)
+            process_list = new_process_list
+    except KeyboardInterrupt:
+        print("Quit...")
+        for a_process in process_list:
+            if a_process.is_alive():
+                a_process.terminate()
+        server.shutdown(1)
+        server.close()
+    except Exception as e:
+        print(e)
+    finally:
+        pass
+

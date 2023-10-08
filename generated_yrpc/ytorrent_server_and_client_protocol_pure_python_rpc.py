@@ -7,6 +7,7 @@ import json
 import os
 import multiprocessing
 from time import sleep
+import sys
 
 
 class Service_ytorrent_server_and_client_protocol:
@@ -164,9 +165,18 @@ def run(service_instance: Service_ytorrent_server_and_client_protocol, port: str
             self.send_header("Content-Type", "application/json")
             self.end_headers()
 
-            response = handle_post_url(sub_url, headers, request_json_dict)
+            def function_that_running_in_sub_process():
+                try:
+                    response = handle_post_url(sub_url, headers, request_json_dict)
 
-            self.wfile.write(response.encode("utf-8"))
+                    self.wfile.write(response.encode("utf-8"))
+                    sys.exit(0)
+                except Exception as e:
+                    print(e)
+                    sys.exit(0)
+            
+            sub_process = multiprocessing.Process(target=function_that_running_in_sub_process)
+            sub_process.start()
 
     
     # Creating Server

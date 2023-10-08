@@ -70,6 +70,7 @@ class Ytorrent_Service(ytorrent_server_and_client_protocol_pure_python_rpc.Servi
         default_response = Seed_Response()
 
         try:
+            sleep(60)
             pass
         except Exception as e:
             print(f"Error: {e}")
