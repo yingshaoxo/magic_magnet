@@ -6,11 +6,13 @@ from time import sleep
 multiprocess_manager = multiprocessing.Manager()
 
 
-def handle_request(method: str, url: str, headers: dict, payload: str):
+def handle_request(method: str, url: str, headers: dict, payload: str | None):
     print(method)
     print(url)
     print(headers)
-    print(payload)
+    if payload:
+        print("...")
+        print(payload[-100:])
     return url
 
 
@@ -20,7 +22,8 @@ def handle_socket_request(conn):
         url = None
         http_standards = None
 
-        raw_http_request = conn.recv(1024).decode("utf-8")
+        raw_http_request_bytes = conn.recv(1024) # one utf-8 char is 0~4 bytes, that's why for the following code, I times the length by 4 to make sure we receive all data
+        raw_http_request = raw_http_request_bytes.decode("utf-8", errors="ignore")
         #print(raw_http_request)
         #print(repr(raw_http_request))
 
@@ -49,22 +52,28 @@ def handle_socket_request(conn):
 
         content_length = None
         payload = None
+        payload_seperator_bytes = b"\r\n\r\n"
         payload_seperator = "\r\n\r\n"
         if "Content-Length" in headers_dict:
             content_length = int(headers_dict["Content-Length"])
         
         if content_length != None:
             # receive the rest of data by using socket receiv
-            payload_splits = raw_http_request.split(payload_seperator)
+            payload_splits = raw_http_request_bytes.split(payload_seperator_bytes)
             if len(payload_splits) >= 2:
+                # already has all headers, need payload
                 payload = payload_splits[1]
                 if len(payload) >= content_length:
                     pass
                 else:
-                    while True:
-                        payload += conn.recv(1024).decode("utf-8")
-                        if len(payload) >= content_length:
-                            break
+                    payload += conn.recv((content_length)*4-len(payload)+200)
+                    payload = payload.decode("utf-8", errors="ignore")
+            else:
+                # missing some headers, need more data, including payload
+                raw_http_request_bytes += conn.recv((content_length)*4+len(raw_http_request_bytes)+200)
+                raw_http_request = raw_http_request_bytes.decode("utf-8", errors="ignore")
+                payload = raw_http_request_bytes.split(payload_seperator_bytes)[1]
+                payload = payload.decode("utf-8", errors="ignore")
 
         # do the process directly
         splits = raw_http_request.split(payload_seperator)
