@@ -1,12 +1,15 @@
+from typing import Any
+
 import socket
 import multiprocessing
+import json
 from time import sleep
 
 
 multiprocess_manager = multiprocessing.Manager()
 
 
-def handle_request(method: str, url: str, headers: dict, payload: str | None):
+def handle_request(method: str, url: str, headers: dict[str, Any], payload: str | None) -> dict | str:
     print(method)
     print(url)
     print(headers)
@@ -16,13 +19,13 @@ def handle_request(method: str, url: str, headers: dict, payload: str | None):
     return url
 
 
-def handle_socket_request(conn):
+def handle_socket_request(socket_connection):
     try:
         method = None
         url = None
         http_standards = None
 
-        raw_http_request_bytes = conn.recv(1024) # one utf-8 char is 0~4 bytes, that's why for the following code, I times the length by 4 to make sure we receive all data
+        raw_http_request_bytes = socket_connection.recv(1024) # one utf-8 char is 0~4 bytes, that's why for the following code, I times the length by 4 to make sure we receive all data
         raw_http_request = raw_http_request_bytes.decode("utf-8", errors="ignore")
         #print(raw_http_request)
         #print(repr(raw_http_request))
@@ -66,11 +69,11 @@ def handle_socket_request(conn):
                 if len(payload) >= content_length:
                     pass
                 else:
-                    payload += conn.recv((content_length)*4-len(payload)+200)
+                    payload += socket_connection.recv((content_length)*4-len(payload)+200)
                     payload = payload.decode("utf-8", errors="ignore")
             else:
                 # missing some headers, need more data, including payload
-                raw_http_request_bytes += conn.recv((content_length)*4+len(raw_http_request_bytes)+200)
+                raw_http_request_bytes += socket_connection.recv((content_length)*4+len(raw_http_request_bytes)+200)
                 raw_http_request = raw_http_request_bytes.decode("utf-8", errors="ignore")
                 payload = raw_http_request_bytes.split(payload_seperator_bytes)[1]
                 payload = payload.decode("utf-8", errors="ignore")
@@ -87,26 +90,30 @@ def handle_socket_request(conn):
 
         #print(f"headers:\n{headers_dict}")
         #print(f"payload:\n{payload}")
-        text_response = handle_request(method, url, headers_dict, payload)
+        response = f"HTTP/1.1 500 Server error\r\n\r\n"
 
-        response = f"HTTP/1.1 200 OK\r\n\r\n{text_response}"
-        # If you want to return json, you have to return:
-        """
-        HTTP/1.1 200 OK
-        Content-Type: application/json
-        Content-Length: 19
+        raw_response = handle_request(method, url, headers_dict, payload)
+        if type(raw_response) == str:
+            response = f"HTTP/1.1 200 OK\r\n\r\n{raw_response}"
+        elif type(raw_response) == dict:
+            raw_response = json.dumps(raw_response, indent=4)
+            json_length = len(raw_response)
+            response = f"""
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: {json_length}
 
-        {"success":"true"}
-        """
+{raw_response}
+            """
 
-        conn.sendall(response.encode("utf-8"))
+        socket_connection.sendall(response.encode("utf-8", errors="ignore"))
     except Exception as e:
         print(e)
         response = f"HTTP/1.1 200 OK\r\n\r\n{e}"
-        conn.sendall(response.encode("utf-8"))
+        socket_connection.sendall(response.encode("utf-8", errors="ignore"))
     finally:
-        conn.shutdown(1)
-        conn.close()
+        socket_connection.shutdown(1)
+        socket_connection.close()
         exit()
 
 if __name__ == "__main__":
@@ -125,8 +132,8 @@ if __name__ == "__main__":
         #global_socket_list = multiprocess_manager.list()
 
         while True:
-            conn, addr = server.accept()
-            process = multiprocessing.Process(target=handle_socket_request, args=(conn, ))
+            socket_connection, addr = server.accept()
+            process = multiprocessing.Process(target=handle_socket_request, args=(socket_connection, ))
             process.start()
             process_list.append(process)
 
