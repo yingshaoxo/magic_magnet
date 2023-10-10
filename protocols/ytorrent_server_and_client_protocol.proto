@@ -15,6 +15,7 @@ service ytorrent_service {
     rpc search (Search_Request) returns (Search_Response);
     rpc download (Download_Request) returns (Download_Response); // user should do this almost all the time if they want to download something, the default polling time is 60 seconds
     rpc upload (Upload_Request) returns (Upload_Response);
+    rpc version (Version_Request) returns (Version_Response);
 }
 
 message Server_Config {
@@ -90,3 +91,11 @@ message Download_Response {
     bool try_it_later_when_other_need_to_upload = 2;
     string file_segment_bytes_in_base64 = 3;
 }
+
+message Version_Request {
+} 
+
+message Version_Response {
+    string name = 1; // default "magic_torrent"
+    int64 version_code = 2; //1, whenever a number is greater than this, will be considered a upgraded version
+} 

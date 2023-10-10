@@ -61,6 +61,18 @@ class Service_ytorrent_server_and_client_protocol:
 
         return default_response
 
+    async def version(self, headers: dict[str, str], item: Version_Request) -> Version_Response:
+        default_response = Version_Response()
+
+        try:
+            pass
+        except Exception as e:
+            print(f"Error: {e}")
+            #default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
+
 
 def init(service_instance: Any):
     @router.post("/seed/", tags=["ytorrent_server_and_client_protocol"])
@@ -86,6 +98,12 @@ def init(service_instance: Any):
         item = Upload_Request().from_dict(item.to_dict())
         headers = dict(request.headers.items())
         return (await service_instance.upload(headers, item)).to_dict()
+
+    @router.post("/version/", tags=["ytorrent_server_and_client_protocol"])
+    async def version(request: Request, item: Version_Request) -> Version_Response:
+        item = Version_Request().from_dict(item.to_dict())
+        headers = dict(request.headers.items())
+        return (await service_instance.version(headers, item)).to_dict()
 
 
 def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):

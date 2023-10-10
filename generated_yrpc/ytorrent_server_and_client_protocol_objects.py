@@ -373,3 +373,40 @@ class Download_Response(YRPC_OBJECT_BASE_CLASS):
     def from_dict(self, dict: dict[str, Any]):
         new_variable: Download_Response = super().from_dict(dict)
         return new_variable
+
+
+@dataclass()
+class Version_Request(YRPC_OBJECT_BASE_CLASS):
+
+
+    _property_name_to_its_type_dict = {
+
+    }
+
+    @dataclass()
+    class _key_string_dict:
+        pass
+
+    def from_dict(self, dict: dict[str, Any]):
+        new_variable: Version_Request = super().from_dict(dict)
+        return new_variable
+
+
+@dataclass()
+class Version_Response(YRPC_OBJECT_BASE_CLASS):
+    name: str | None = None
+    version_code: int | None = None
+
+    _property_name_to_its_type_dict = {
+        "name": str,
+        "version_code": int,
+    }
+
+    @dataclass()
+    class _key_string_dict:
+        name: str = "name"
+        version_code: str = "version_code"
+
+    def from_dict(self, dict: dict[str, Any]):
+        new_variable: Version_Response = super().from_dict(dict)
+        return new_variable

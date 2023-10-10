@@ -7,7 +7,6 @@ import json
 import os
 import multiprocessing
 from time import sleep
-import sys
 
 
 class Service_ytorrent_server_and_client_protocol:
@@ -49,6 +48,18 @@ class Service_ytorrent_server_and_client_protocol:
 
     def upload(self, headers: dict[str, str], item: Upload_Request) -> Upload_Response:
         default_response = Upload_Response()
+
+        try:
+            pass
+        except Exception as e:
+            print(f"Error: {e}")
+            #default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
+
+    def version(self, headers: dict[str, str], item: Version_Request) -> Version_Response:
+        default_response = Version_Response()
 
         try:
             pass
@@ -122,6 +133,10 @@ def run(service_instance: Service_ytorrent_server_and_client_protocol, port: str
             correct_item = Upload_Request().from_dict(item)
             return json.dumps((service_instance.upload(headers, correct_item)).to_dict())
 
+        elif (request_url == "version"):
+            correct_item = Version_Request().from_dict(item)
+            return json.dumps((service_instance.version(headers, correct_item)).to_dict())
+
         return f"No API url matchs '{request_url}'"
     
     class WebRequestHandler(http_server.BaseHTTPRequestHandler):
@@ -165,18 +180,9 @@ def run(service_instance: Service_ytorrent_server_and_client_protocol, port: str
             self.send_header("Content-Type", "application/json")
             self.end_headers()
 
-            def function_that_running_in_sub_process():
-                try:
-                    response = handle_post_url(sub_url, headers, request_json_dict)
+            response = handle_post_url(sub_url, headers, request_json_dict)
 
-                    self.wfile.write(response.encode("utf-8"))
-                    sys.exit(0)
-                except Exception as e:
-                    print(e)
-                    sys.exit(0)
-            
-            sub_process = multiprocessing.Process(target=function_that_running_in_sub_process)
-            sub_process.start()
+            self.wfile.write(response.encode("utf-8"))
 
     
     # Creating Server
