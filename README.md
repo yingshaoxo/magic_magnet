@@ -26,8 +26,16 @@ When you run `magic_magnet *` the first time, it will start a server, which give
 
 When you run `magic_magnet search/seed keywords/path` again, it will check if the local service is running or not, if it isn't, it will try to launch it again, otherwise, it will do the right job you ask
 
+#### Command List
+* magic_magnet * 
+* magic_magnet enable user_interface
+* magic_magnet seed <folder_file_path>
+* magic_magnet search <keywords>
+* magic_magnet download <magnet_magic_link>
+* magic_magnet kill
+
 ### For the electron app
-It should spawn the about python software and execute it first, then launch the user interface written by vue3(vite).
+It should spawn the about python software and execute it first with "enable user_interface", then launch the user interface written by vue3(vite).
 
 <!-- ## How to compile it?
 
