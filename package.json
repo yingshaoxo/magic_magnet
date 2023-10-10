@@ -2,10 +2,9 @@
     "name": "magic_magnet",
     "version": "0.0.1",
     "author": "yingshaoxo@gmail.com",
-    "main": "client.py",
+    "main": "main.py",
     "scripts": {
-        "run_server": "python3 server.py",
-        "run_client": "python3 client.py"
+        "run": "python3 main.py"
     },
     "dependencies": [
         "auto_everything"

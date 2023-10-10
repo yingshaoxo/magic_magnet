@@ -220,13 +220,13 @@ class Seed_Request(YRPC_OBJECT_BASE_CLASS):
 @dataclass()
 class Seed_Response(YRPC_OBJECT_BASE_CLASS):
     error: str | None = None
-    success: str | None = None
+    success: bool | None = None
     someone_needs_you_to_upload_your_file: bool | None = None
     need_to_upload_notification_list: list[Need_To_Upload_Notification] | None = None
 
     _property_name_to_its_type_dict = {
         "error": str,
-        "success": str,
+        "success": bool,
         "someone_needs_you_to_upload_your_file": bool,
         "need_to_upload_notification_list": Need_To_Upload_Notification,
     }

@@ -12,15 +12,22 @@ A torrent client that implements yingshaoxo torrent protocol.
 
 ## For the python command line software
 ### Installation
+It should be a server, and also a client.
+
 It should as simple as:
 ```
 1. Install python3.10 by using some command.
-2. Put "python3.10 server.py/client.py" bash script as file "magic_magnet" under "/usr/bin".
+2. Put "python3.10 main.py" bash script as file "magic_magnet" under "/usr/bin".
 3. Use "sudo chmod 777 /usr/bin/magic_magnet" to let "magic_magnet" global accessble.
 ```
 
-## For the electron app
-It should spawn python software and execute it first, then launch the user interface written by vue3(vite).
+### Usage
+When you run `magic_magnet *` the first time, it will start a server, which gives you a tracker url/ip address
+
+When you run `magic_magnet search/seed keywords/path` again, it will check if the local service is running or not, if it isn't, it will try to launch it again, otherwise, it will do the right job you ask
+
+### For the electron app
+It should spawn the about python software and execute it first, then launch the user interface written by vue3(vite).
 
 <!-- ## How to compile it?
 

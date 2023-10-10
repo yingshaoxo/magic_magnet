@@ -53,9 +53,24 @@ print(f"database_path: {the_database_path}")
 disk.create_a_folder(the_database_path)
 database_excutor = Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol(database_base_folder=the_database_path)
 
-#_ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
-#if _ADMIN_EMAIL:
-#    configuration.ADMIN_EMAIL = _ADMIN_EMAIL
+
+SERVER_CONFIG = Server_Config(
+    file_segments_memory_pool_size_in_mb=200,
+    max_acceptable_file_segment_size_in_mb=1,
+    polling_waiting_time_in_seconds=60
+)
+
+_file_segments_memory_pool_size_in_mb = os.getenv("file_segments_memory_pool_size_in_mb")
+if _file_segments_memory_pool_size_in_mb is not None:
+    SERVER_CONFIG.file_segments_memory_pool_size_in_mb = _file_segments_memory_pool_size_in_mb
+
+_max_acceptable_file_segment_size_in_mb = os.getenv("max_acceptable_file_segment_size_in_mb")
+if _max_acceptable_file_segment_size_in_mb is not None:
+    SERVER_CONFIG.max_acceptable_file_segment_size_in_mb = _max_acceptable_file_segment_size_in_mb
+
+_polling_waiting_time_in_seconds = os.getenv("polling_waiting_time_in_seconds")
+if _polling_waiting_time_in_seconds is not None:
+    SERVER_CONFIG.polling_waiting_time_in_seconds = _polling_waiting_time_in_seconds
 
 
 def refactor_database():
@@ -67,11 +82,21 @@ def refactor_database():
 
 class Ytorrent_Service(ytorrent_server_and_client_protocol_pure_python_rpc.Service_ytorrent_server_and_client_protocol):
     def seed(self, headers: dict[str, str], item: Seed_Request) -> Seed_Response:
+        global SERVER_CONFIG
         default_response = Seed_Response()
 
         try:
-            sleep(60)
-            pass
+            start_time = time_.get_datetime_object_from_timestamp(time_.get_current_timestamp_in_10_digits_format())
+            # check if there has any user wanted to download a file or folder this seeder provides
+            # if so, return the download request
+            # this check should be in a while loop, we'll check it for every 1 second
+            """
+                current_time = time_.get_datetime_object_from_timestamp(time_.get_current_timestamp_in_10_digits_format())
+                if ((current_time - start_time).seconds >= 60):
+                    # it is just a normal timeout, the user should make another seed request immediatly
+                    default_response.success = True
+                    return default_response
+            """
         except Exception as e:
             print(f"Error: {e}")
             #default_response.error = str(e)
@@ -108,6 +133,19 @@ class Ytorrent_Service(ytorrent_server_and_client_protocol_pure_python_rpc.Servi
 
         try:
             pass
+        except Exception as e:
+            print(f"Error: {e}")
+            #default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
+
+    def version(self, headers: dict[str, str], item: Version_Request) -> Version_Response:
+        default_response = Version_Response()
+
+        try:
+            default_response.name = "magic_torrent"
+            default_response.version_code = 1
         except Exception as e:
             print(f"Error: {e}")
             #default_response.error = str(e)

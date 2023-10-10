@@ -15,6 +15,7 @@ service ytorrent_service {
     rpc search (Search_Request) returns (Search_Response);
     rpc download (Download_Request) returns (Download_Response); // user should do this almost all the time if they want to download something, the default polling time is 60 seconds
     rpc upload (Upload_Request) returns (Upload_Response);
+    rpc get_shared_tracker_list (Get_Shared_Tracker_List_Request) returns (Get_Shared_Tracker_List_Response); // When the server could directly get /version from client host ip, which means they has public ip, then we add that ip into this list
     rpc version (Version_Request) returns (Version_Response);
 }
 
@@ -53,7 +54,7 @@ message Seed_Request {
 
 message Seed_Response {
     string error = 1;
-    string success = 2;
+    bool success = 2;
     bool someone_needs_you_to_upload_your_file = 3;
     repeated Need_To_Upload_Notification need_to_upload_notification_list = 4;
 }
@@ -91,6 +92,14 @@ message Download_Response {
     bool try_it_later_when_other_need_to_upload = 2;
     string file_segment_bytes_in_base64 = 3;
 }
+
+
+message Get_Shared_Tracker_List_Request {
+} 
+
+message Get_Shared_Tracker_List_Response {
+    repeated string tracker_ip_list = 1;
+} 
 
 message Version_Request {
 } 
