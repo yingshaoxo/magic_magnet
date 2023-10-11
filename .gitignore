@@ -1,5 +1,5 @@
 database_data/
-.swp
+*.swp
 
 .venv/
 .vscode/
