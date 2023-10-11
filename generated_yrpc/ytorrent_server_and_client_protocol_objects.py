@@ -376,6 +376,40 @@ class Download_Response(YRPC_OBJECT_BASE_CLASS):
 
 
 @dataclass()
+class Get_Shared_Tracker_List_Request(YRPC_OBJECT_BASE_CLASS):
+
+
+    _property_name_to_its_type_dict = {
+
+    }
+
+    @dataclass()
+    class _key_string_dict:
+        pass
+
+    def from_dict(self, dict: dict[str, Any]):
+        new_variable: Get_Shared_Tracker_List_Request = super().from_dict(dict)
+        return new_variable
+
+
+@dataclass()
+class Get_Shared_Tracker_List_Response(YRPC_OBJECT_BASE_CLASS):
+    tracker_ip_list: list[str] | None = None
+
+    _property_name_to_its_type_dict = {
+        "tracker_ip_list": str,
+    }
+
+    @dataclass()
+    class _key_string_dict:
+        tracker_ip_list: str = "tracker_ip_list"
+
+    def from_dict(self, dict: dict[str, Any]):
+        new_variable: Get_Shared_Tracker_List_Response = super().from_dict(dict)
+        return new_variable
+
+
+@dataclass()
 class Version_Request(YRPC_OBJECT_BASE_CLASS):
 
 

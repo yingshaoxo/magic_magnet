@@ -55,6 +55,18 @@ class Service_ytorrent_server_and_client_protocol:
 
         return default_response
 
+    def get_shared_tracker_list(self, headers: dict[str, str], item: Get_Shared_Tracker_List_Request) -> Get_Shared_Tracker_List_Response:
+        default_response = Get_Shared_Tracker_List_Response()
+
+        try:
+            pass
+        except Exception as e:
+            print(f"Error: {e}")
+            #default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
+
     def version(self, headers: dict[str, str], item: Version_Request) -> Version_Response:
         default_response = Version_Response()
 
@@ -95,6 +107,10 @@ def run(service_instance: Service_ytorrent_server_and_client_protocol, port: str
         elif (request_url == "upload"):
             correct_item = Upload_Request().from_dict(item)
             return json.dumps((service_instance.upload(headers, correct_item)).to_dict())
+
+        elif (request_url == "get_shared_tracker_list"):
+            correct_item = Get_Shared_Tracker_List_Request().from_dict(item)
+            return json.dumps((service_instance.get_shared_tracker_list(headers, correct_item)).to_dict())
 
         elif (request_url == "version"):
             correct_item = Version_Request().from_dict(item)
