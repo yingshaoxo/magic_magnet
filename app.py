@@ -1,4 +1,4 @@
-print("This is the server!")
+print("This is a server, but also a client. It is a node in a people for people network.")
 
 from typing import Any
 import sys
@@ -11,7 +11,8 @@ import re
 import json
 
 from auto_everything.terminal import Terminal
-from auto_everything.disk import Disk
+from auto_everything.python import Python
+from auto_everything.disk import Disk, Store
 from auto_everything.io import IO
 from auto_everything.cryptography import Encryption_And_Decryption, Password_Generator, JWT_Tool
 from auto_everything.time import Time
@@ -19,14 +20,16 @@ from auto_everything.image import MyPillow
 
 #import generated_yrpc.ytorrent_server_and_client_protocol_objects as ytorrent_server_and_client_protocol_objects
 from generated_yrpc.ytorrent_server_and_client_protocol_objects import *
-import generated_yrpc.ytorrent_server_and_client_protocol_auto_everything_based_pure_python_rpc as ytorrent_server_and_client_protocol_pure_python_rpc
+import generated_yrpc.ytorrent_server_and_client_protocol_pure_python_rpc as ytorrent_server_and_client_protocol_pure_python_rpc
 from generated_yrpc.ytorrent_server_and_client_protocol_yingshaoxo_database_rpc import Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol
 
-t = Terminal()
+terminal = Terminal()
 disk = Disk()
+python = Python()
 io_ = IO()
 time_ = Time()
 my_pillow = MyPillow()
+store = Store("magic_magnet_test")
 
 SECRET_TEXT = "some 'people' are spying on you"
 encryption_and_decryption = Encryption_And_Decryption()
@@ -172,7 +175,7 @@ def run_visitor_yrpc_service(port: str):
     ytorrent_server_and_client_protocol_pure_python_rpc.run(service_instance, port=port, html_folder_path=vue_html_file_folder)
 
 
-def start():
+def start_service():
     process_list = [ 
         multiprocessing.Process(target=run_visitor_yrpc_service, args=("1212",)),
     ]
@@ -191,9 +194,13 @@ def start():
     #     process.join()
 
 
-def main():
-    start()
+class Command_Line_Interface():
+    def __init__(self) -> None:
+        self.project_root_folder = disk.get_directory_path(os.path.realpath(os.path.abspath(__file__))) 
+
+    def hi(self):
+        print("A hi from yingshaoxo, the greatest man.")
 
 
 if __name__ == '__main__':
-    start()
+    python.fire(Command_Line_Interface)

@@ -2,7 +2,7 @@
     "name": "magic_magnet",
     "version": "0.0.1",
     "author": "yingshaoxo@gmail.com",
-    "main": "main.py",
+    "main": "app.py",
     "scripts": {
         "run": "python3 main.py"
     },
