@@ -1,5 +1,4 @@
 database_data/
-*.swp
 
 .venv/
 .vscode/
@@ -9,6 +8,9 @@ database_data/
 dist/
 build/
 data/
+
+*.swp
+__pycache__/
 
 # Prerequisites
 *.d
