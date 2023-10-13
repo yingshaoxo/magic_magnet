@@ -22,7 +22,8 @@ disk = Disk()
 python = Python()
 io_ = IO()
 time_ = Time()
-store = Store("magic_magnet_test")
+core_store = Store("magic_magnet_core_channel")
+data_store = Store("magic_magnet_data_channel")
 
 #import generated_yrpc.ytorrent_server_and_client_protocol_objects as ytorrent_server_and_client_protocol_objects
 import generated_yrpc.ytorrent_server_and_client_protocol_objects as ytorrent_objects
@@ -272,30 +273,33 @@ def run_local_yrpc_service(port: str):
 
 
 def start_all_service():
-    try:
-        process_list = [
-            multiprocessing.Process(target=run_remote_yrpc_service, args=("1111",)),
-            multiprocessing.Process(target=run_local_yrpc_service, args=("1212",)),
-        ]
+    process_list = [
+        multiprocessing.Process(target=run_remote_yrpc_service, args=("1111",)),
+        multiprocessing.Process(target=run_local_yrpc_service, args=("1212",)),
+    ]
 
-        for process in process_list:
-            process.start()
-
-        #while all([
-        #    one.is_alive()
-        #    for one in process_list
-        #]):
-        #    sleep(10)
-
-        # Wait processes to complete
-        for process in process_list:
-            process.join()
-    except Exception as e:
-        print(e)
-    finally:
+    def kill_all_process():
         for process in process_list:
             if process.is_alive():
                 process.terminate()
+
+    try:
+        for process in process_list:
+            process.start()
+
+        while all([
+            one.is_alive()
+            for one in process_list
+        ]):
+            sleep(3)
+            if core_store.get("stop_signal", False) == True:
+                kill_all_process()
+    except Exception as e:
+        print(e)
+
+    # If one of them get killed, kill them all
+    kill_all_process()
+    core_store.set("stop_signal", False)
 
 
 class Ytorrent_Client():
@@ -304,6 +308,7 @@ class Ytorrent_Client():
 
         self.remote_service_address = f"http://127.0.0.1:{YTORRENT_CONFIG.default_remote_service_port}"
         self.local_service_address = f"http://127.0.0.1:{YTORRENT_CONFIG.default_local_service_port}"
+        # local service in port 1212 should not get exposed to public network
 
         self.remote_service_address_list = list(set(YTORRENT_CONFIG.tracker_ip_or_url_list))
 
@@ -335,18 +340,31 @@ class Ytorrent_Client():
             start_all_service()
             exit()
 
+    def seed(self, file_or_folder_path: str):
+        pass
+        # seed this file, put it into database, do not allow user to seed the same resource twice
+
+    def search(self, keywords: str):
+        pass
+        # do search on the network, here the network is our database, has to have page seperation, for each resource, you should give user a certain magnet link like: magnet_magic:?xt=xxx
+
+    def download(self, magic_magnet_link: str):
+        pass
+
+    def stop(self):
+        """
+        Stop all service that related magic magnet software.
+        """
+        core_store.set("stop_signal", True)
+        print("In quiting...")
+        sleep(4)
+        print("Quit successfully")
+
 
 class Command_Line_Interface():
     def __init__(self) -> None:
         self.ytorrent_client = Ytorrent_Client()
         # Here is should do a check to make sure the magic magnet service is in running by do a localhost ping, if it isn't, then start that service, print this service tracker ip, and ask user to open another bash to execute their command again
-
-    def enable_user_interface(self):
-        """
-        launch a client website in http://localhost:1212
-        """
-        pass
-        # if this is not enabled, any request sent to 1212 port will get banned (return immediately)
 
     def seed(self, file_or_folder_path: str):
         pass
@@ -363,7 +381,7 @@ class Command_Line_Interface():
         """
         Stop all service that related magic magnet software.
         """
-        pass
+        self.ytorrent_client.stop()
 
     def version(self):
         print("Magic Magnet v1. (author yingshaoxo)")
