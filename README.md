@@ -1,6 +1,8 @@
 # magic_magnet
 A torrent client that implements yingshaoxo torrent protocol.
 
+> 'ytorrent' is a protocol. 'magic_magnet' is a software.
+
 
 ## Yingshaoxo Torrent Protocol
 
@@ -32,7 +34,7 @@ When you run `magic_magnet search/seed keywords/path` again, it will check if th
 * magic_magnet seed <folder_file_path>
 * magic_magnet search <keywords>
 * magic_magnet download <magnet_magic_link>
-* magic_magnet kill
+* magic_magnet stop
 
 ### For the electron app
 It should spawn the about python software and execute it first with "enable user_interface", then launch the user interface written by vue3(vite).

@@ -19,14 +19,13 @@ service ytorrent_service {
     rpc version (Version_Request) returns (Version_Response);
 }
 
-message Server_Config {
-    int64 file_segments_memory_pool_size_in_mb = 1; // default 1000 mb
-    int64 max_acceptable_file_segment_size_in_mb = 2; // default 1 mb
-    int64 polling_waiting_time_in_seconds = 3; // default 60 seconds
-}
-
-message Client_Config {
-    repeated string tracker_ip_or_url_list = 1;  // it is actually the server service ip/url, if non of those tracker is avaliable, then the search will return offline 'built-in chat data', for example, 'yingshaoxo's saying'
+message Ytorrent_Config {
+    int64 default_remote_service_port = 1; // dedault 1111
+    int64 default_local_service_port = 2; // dedault 1212
+    int64 file_segments_memory_pool_size_in_mb = 3; // default 1000 mb
+    int64 max_acceptable_file_segment_size_in_mb = 4; // default 1 mb
+    int64 polling_waiting_time_in_seconds = 5; // default 60 seconds
+    repeated string tracker_ip_or_url_list = 6;  // it is actually the server service ip/url, if non of those tracker is avaliable, then the search will return offline 'built-in chat data', for example, 'yingshaoxo's saying'
 }
 
 message A_Resource {

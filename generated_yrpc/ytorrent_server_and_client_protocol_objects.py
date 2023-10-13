@@ -94,42 +94,34 @@ class YRPC_OBJECT_BASE_CLASS:
 
         
 @dataclass()
-class Server_Config(YRPC_OBJECT_BASE_CLASS):
+class Ytorrent_Config(YRPC_OBJECT_BASE_CLASS):
+    default_remote_service_port: int | None = None
+    default_local_service_port: int | None = None
     file_segments_memory_pool_size_in_mb: int | None = None
     max_acceptable_file_segment_size_in_mb: int | None = None
     polling_waiting_time_in_seconds: int | None = None
-
-    _property_name_to_its_type_dict = {
-        "file_segments_memory_pool_size_in_mb": int,
-        "max_acceptable_file_segment_size_in_mb": int,
-        "polling_waiting_time_in_seconds": int,
-    }
-
-    @dataclass()
-    class _key_string_dict:
-        file_segments_memory_pool_size_in_mb: str = "file_segments_memory_pool_size_in_mb"
-        max_acceptable_file_segment_size_in_mb: str = "max_acceptable_file_segment_size_in_mb"
-        polling_waiting_time_in_seconds: str = "polling_waiting_time_in_seconds"
-
-    def from_dict(self, dict: dict[str, Any]):
-        new_variable: Server_Config = super().from_dict(dict)
-        return new_variable
-
-
-@dataclass()
-class Client_Config(YRPC_OBJECT_BASE_CLASS):
     tracker_ip_or_url_list: list[str] | None = None
 
     _property_name_to_its_type_dict = {
+        "default_remote_service_port": int,
+        "default_local_service_port": int,
+        "file_segments_memory_pool_size_in_mb": int,
+        "max_acceptable_file_segment_size_in_mb": int,
+        "polling_waiting_time_in_seconds": int,
         "tracker_ip_or_url_list": str,
     }
 
     @dataclass()
     class _key_string_dict:
+        default_remote_service_port: str = "default_remote_service_port"
+        default_local_service_port: str = "default_local_service_port"
+        file_segments_memory_pool_size_in_mb: str = "file_segments_memory_pool_size_in_mb"
+        max_acceptable_file_segment_size_in_mb: str = "max_acceptable_file_segment_size_in_mb"
+        polling_waiting_time_in_seconds: str = "polling_waiting_time_in_seconds"
         tracker_ip_or_url_list: str = "tracker_ip_or_url_list"
 
     def from_dict(self, dict: dict[str, Any]):
-        new_variable: Client_Config = super().from_dict(dict)
+        new_variable: Ytorrent_Config = super().from_dict(dict)
         return new_variable
 
 

@@ -114,7 +114,7 @@ def run(service_instance: Service_ytorrent_server_and_client_protocol, port: str
                     with open(real_file_path, mode="rb") as f:
                         the_data = f.read()
                 else:
-                    return b"Resource not found"
+                    return b"Resource not found\n\n(This web service is using YRPC (Yingshaoxo Remote Procedure Call))"
                 return the_data
 
             print(f"The website is running at: http://127.0.0.1:{port}/")

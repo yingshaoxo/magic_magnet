@@ -139,49 +139,26 @@ def _update(self, old_item_filter: Any, new_item: Any):
     self.database_of_yingshaoxo.update(one_row_dict_handler=one_row_dict_handler)
 
 
-class Yingshaoxo_Database_Server_Config:
+class Yingshaoxo_Database_Ytorrent_Config:
     def __init__(self, database_base_folder: str) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Server_Config", database_base_folder=database_base_folder)
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Ytorrent_Config", database_base_folder=database_base_folder)
 
-    def add(self, item: Server_Config):
+    def add(self, item: Ytorrent_Config):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
 
-    def search(self, item_filter: Server_Config, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[Server_Config]:
-        return [Server_Config().from_dict(one) for one in _search_function(self=self, item_filter=item_filter, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
+    def search(self, item_filter: Ytorrent_Config, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[Ytorrent_Config]:
+        return [Ytorrent_Config().from_dict(one) for one in _search_function(self=self, item_filter=item_filter, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
 
-    def raw_search(self, one_row_json_string_handler: Callable[[str], dict[str, Any] | None], page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[Server_Config]:
+    def raw_search(self, one_row_json_string_handler: Callable[[str], dict[str, Any] | None], page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[Ytorrent_Config]:
         '''
         one_row_json_string_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
         '''
-        return [Server_Config().from_dict(one) for one in _raw_search_function(self=self, one_row_json_string_handler=one_row_json_string_handler, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
+        return [Ytorrent_Config().from_dict(one) for one in _raw_search_function(self=self, one_row_json_string_handler=one_row_json_string_handler, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
 
-    def delete(self, item_filter: Server_Config):
+    def delete(self, item_filter: Ytorrent_Config):
         return _delete(self=self, item_filter=item_filter)
     
-    def update(self, old_item_filter: Server_Config, new_item: Server_Config):
-        return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
-
-
-class Yingshaoxo_Database_Client_Config:
-    def __init__(self, database_base_folder: str) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Client_Config", database_base_folder=database_base_folder)
-
-    def add(self, item: Client_Config):
-        return self.database_of_yingshaoxo.add(data=item.to_dict())
-
-    def search(self, item_filter: Client_Config, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[Client_Config]:
-        return [Client_Config().from_dict(one) for one in _search_function(self=self, item_filter=item_filter, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
-
-    def raw_search(self, one_row_json_string_handler: Callable[[str], dict[str, Any] | None], page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[Client_Config]:
-        '''
-        one_row_json_string_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
-        '''
-        return [Client_Config().from_dict(one) for one in _raw_search_function(self=self, one_row_json_string_handler=one_row_json_string_handler, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
-
-    def delete(self, item_filter: Client_Config):
-        return _delete(self=self, item_filter=item_filter)
-    
-    def update(self, old_item_filter: Client_Config, new_item: Client_Config):
+    def update(self, old_item_filter: Ytorrent_Config, new_item: Ytorrent_Config):
         return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
 
 
@@ -234,8 +211,7 @@ class Yingshaoxo_Database_Need_To_Upload_Notification:
 class Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol:
     def __init__(self, database_base_folder: str):
         self._database_base_folder = database_base_folder
-        self.Server_Config = Yingshaoxo_Database_Server_Config(database_base_folder=self._database_base_folder)
-        self.Client_Config = Yingshaoxo_Database_Client_Config(database_base_folder=self._database_base_folder)
+        self.Ytorrent_Config = Yingshaoxo_Database_Ytorrent_Config(database_base_folder=self._database_base_folder)
         self.A_Resource = Yingshaoxo_Database_A_Resource(database_base_folder=self._database_base_folder)
         self.Need_To_Upload_Notification = Yingshaoxo_Database_Need_To_Upload_Notification(database_base_folder=self._database_base_folder)
 
