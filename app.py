@@ -56,7 +56,10 @@ print(f"resource_basic_folder_path: {resource_basic_folder_path}")
 print(f"database_path: {the_database_path}")
 print()
 disk.create_a_folder(the_database_path)
-database_excutor = Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol(database_base_folder=the_database_path)
+remote_database_path = disk.join_paths(the_database_path, "remote_service")
+local_database_path = disk.join_paths(the_database_path, "local_service")
+database_excutor_for_remote_service = Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol(database_base_folder=remote_database_path)
+database_excutor_for_local_service = Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol(database_base_folder=local_database_path)
 
 
 YTORRENT_CONFIG = ytorrent_objects.Ytorrent_Config(
@@ -95,10 +98,13 @@ if _tracker_ip_or_url_list is not None:
 
 
 def refactor_database():
-    database_excutor.A_Resource.database_of_yingshaoxo.refactor_database()
-    database_excutor.Need_To_Upload_Notification.database_of_yingshaoxo.refactor_database()
-    database_excutor.Server_Config.database_of_yingshaoxo.refactor_database()
-    database_excutor.Client_Config.database_of_yingshaoxo.refactor_database()
+    database_excutor_for_remote_service.A_Resource.database_of_yingshaoxo.refactor_database()
+    database_excutor_for_remote_service.Ytorrent_Config.database_of_yingshaoxo.refactor_database()
+    database_excutor_for_remote_service.Need_To_Upload_Notification.database_of_yingshaoxo.refactor_database()
+
+    database_excutor_for_local_service.A_Resource.database_of_yingshaoxo.refactor_database()
+    database_excutor_for_local_service.Ytorrent_Config.database_of_yingshaoxo.refactor_database()
+    database_excutor_for_local_service.Need_To_Upload_Notification.database_of_yingshaoxo.refactor_database()
 
 
 class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rpc.Service_ytorrent_server_and_client_protocol):
@@ -272,10 +278,77 @@ def run_local_yrpc_service(port: str):
     ytorrent_server_and_client_protocol_pure_python_rpc.run(service_instance, port=port, html_folder_path=vue_html_file_folder)
 
 
+def local_background_main_process():
+    # this should be a single while loop, which does everything that needs to work for every x seconds
+    project_root_folder = disk.get_directory_path(os.path.realpath(os.path.abspath(__file__)))
+
+    remote_service_address = f"http://127.0.0.1:{YTORRENT_CONFIG.default_remote_service_port}"
+    local_service_address = f"http://127.0.0.1:{YTORRENT_CONFIG.default_local_service_port}"
+
+    remote_service_address_list = list(set(YTORRENT_CONFIG.tracker_ip_or_url_list))
+
+    def get_remote_client_list() -> list[ytorrent_server_and_client_protocol_pure_python_rpc_client.Client_ytorrent_server_and_client_protocol]:
+        client_list = []
+        for an_address in remote_service_address_list:
+            remote_client = ytorrent_server_and_client_protocol_pure_python_rpc_client.Client_ytorrent_server_and_client_protocol(service_url=an_address)
+            client_list.append(remote_client)
+        return client_list
+
+    client_list = get_remote_client_list()
+
+    def do_the_seeding_based_on_local_database_data():
+        resouce_list = database_excutor_for_local_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource())
+        for a_resource in resouce_list:
+            seed_request = ytorrent_objects.Seed_Request(a_resource=a_resource)
+            for client in client_list:
+                try:
+                    seed_response = client.seed(seed_request)
+                    if seed_response.error != None:
+                        print(seed_response.error)
+                        continue
+                    else:
+                        if seed_response.someone_needs_you_to_upload_your_file == False:
+                            continue
+                        else:
+                            for need_to_upload_notification in seed_response.need_to_upload_notification_list:
+                                file_hash = need_to_upload_notification.file_or_folder_hash
+                                target_resource_list = [one for one in resouce_list if one.file_or_folder_hash == file_hash]
+                                if len(target_resource_list) == 0:
+                                    continue
+                                else:
+                                    target_resource = target_resource_list[0]
+                                    target_project_path = disk.join_paths(target_resource.root_folder, target_resource.name)
+                                    target_file_path = disk.join_paths(target_resource.root_folder, need_to_upload_notification.file_path_relative_to_root_folder)
+                                    if not disk.exists(target_project_path):
+                                        database_excutor_for_local_service.A_Resource.delete(item_filter=target_resource)
+                                        continue
+                                    if not disk.exists(target_file_path):
+                                        continue
+
+                                    bytesio_data = disk.get_part_of_a_file_in_bytesio_format_from_a_file(file_path=target_file_path, need_to_upload_notification.file_segment_size_in_kb*1024, need_to_upload_notification.segment_number)
+                                    base64_data = disk.bytesio_to_base64(bytesio_data)
+                                    upload_request = ytorrent_objects.Upload_Request(
+                                        need_to_upload_notification=need_to_upload_notification,
+                                        file_segment_bytes_in_base64=base64_data,
+                                    )
+                                    upload_response = client.upload(upload_request)
+                                    print("Uplode for ", need_to_upload_notification.file_path_relative_to_root_folder, need_to_upload_notification.segment_number, upload_response.success)
+                except Exception as e:
+                    print(e)
+
+    while True:
+        try:
+            do_the_seeding_based_on_local_database_data()
+        except Exception as e:
+            print(e)
+        sleep(1)
+
+
 def start_all_service():
     process_list = [
         multiprocessing.Process(target=run_remote_yrpc_service, args=("1111",)),
         multiprocessing.Process(target=run_local_yrpc_service, args=("1212",)),
+        multiprocessing.Process(target=local_background_main_process, args=()),
     ]
 
     def kill_all_process():
@@ -388,6 +461,15 @@ class Ytorrent_Client():
             file_path_list_relative_to_root_folder=file_path_list_relative_to_root_folder,
             file_path_content_hash_list=file_path_content_hash_list
         )
+
+        a_search_result_list = database_excutor_for_local_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource(
+            name=a_resource.name,
+            root_folder=a_resource.root_folder
+        ))
+        if (len(a_search_result_list) == 0):
+            database_excutor_for_local_service.A_Resource.add(item=a_resource)
+        else:
+            raise Exception(f"The file/folder you want to seed is already in seeding: {file_or_folder_path}")
 
         print(a_resource)
 
