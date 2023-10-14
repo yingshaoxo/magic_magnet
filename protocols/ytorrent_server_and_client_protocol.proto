@@ -32,10 +32,11 @@ message A_Resource {
     string name = 1;
     bool is_single_file = 2; // in client, when search, show single file first
     string file_or_folder_hash = 3; // server will save this information into a dict where key is the file_or_folder_hash, where value is a list of A_Resource object
-    string file_or_folder_size_in_kb = 4; // just a symbol for human reading, may wrong
-    repeated string folder_path_list_relative_to_root_folder = 5;
-    repeated string file_path_list_relative_to_root_folder = 6;
-    repeated string file_path_content_hash_list = 7;
+    string file_or_folder_size_in_bytes = 4; // just a symbol for human reading, may wrong
+    string root_folder = 5; // the base folder for those shared files
+    repeated string folder_path_list_relative_to_root_folder = 6;
+    repeated string file_path_list_relative_to_root_folder = 7;
+    repeated string file_path_content_hash_list = 8;
 }
 
 message Need_To_Upload_Notification {

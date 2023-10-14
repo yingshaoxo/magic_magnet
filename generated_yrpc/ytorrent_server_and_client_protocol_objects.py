@@ -130,7 +130,8 @@ class A_Resource(YRPC_OBJECT_BASE_CLASS):
     name: str | None = None
     is_single_file: bool | None = None
     file_or_folder_hash: str | None = None
-    file_or_folder_size_in_kb: str | None = None
+    file_or_folder_size_in_bytes: str | None = None
+    root_folder: str | None = None
     folder_path_list_relative_to_root_folder: list[str] | None = None
     file_path_list_relative_to_root_folder: list[str] | None = None
     file_path_content_hash_list: list[str] | None = None
@@ -139,7 +140,8 @@ class A_Resource(YRPC_OBJECT_BASE_CLASS):
         "name": str,
         "is_single_file": bool,
         "file_or_folder_hash": str,
-        "file_or_folder_size_in_kb": str,
+        "file_or_folder_size_in_bytes": str,
+        "root_folder": str,
         "folder_path_list_relative_to_root_folder": str,
         "file_path_list_relative_to_root_folder": str,
         "file_path_content_hash_list": str,
@@ -150,7 +152,8 @@ class A_Resource(YRPC_OBJECT_BASE_CLASS):
         name: str = "name"
         is_single_file: str = "is_single_file"
         file_or_folder_hash: str = "file_or_folder_hash"
-        file_or_folder_size_in_kb: str = "file_or_folder_size_in_kb"
+        file_or_folder_size_in_bytes: str = "file_or_folder_size_in_bytes"
+        root_folder: str = "root_folder"
         folder_path_list_relative_to_root_folder: str = "folder_path_list_relative_to_root_folder"
         file_path_list_relative_to_root_folder: str = "file_path_list_relative_to_root_folder"
         file_path_content_hash_list: str = "file_path_content_hash_list"

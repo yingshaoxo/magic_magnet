@@ -341,8 +341,55 @@ class Ytorrent_Client():
             exit()
 
     def seed(self, file_or_folder_path: str):
-        pass
         # seed this file, put it into database, do not allow user to seed the same resource twice
+        file_or_folder_path = disk.get_absolute_path(file_or_folder_path)
+
+        if not disk.exists(file_or_folder_path):
+            raise Exception(f"The file you want to seed is not exists: {file_or_folder_path}")
+
+        root_folder = disk.get_parent_directory_path(file_or_folder_path)
+        root_folder = disk.get_absolute_path(root_folder)
+
+        name = disk.get_file_name(file_or_folder_path)
+        is_single_file = (not disk.is_directory(file_or_folder_path))
+
+        file_or_folder_hash = None
+        file_or_folder_size_in_bytes = None
+        if (is_single_file):
+            file_or_folder_hash = disk.get_hash_of_a_file_by_using_sha256(file_or_folder_path)
+            file_or_folder_size_in_bytes = disk.get_file_size(file_or_folder_path)
+        else:
+            file_or_folder_hash = disk.get_hash_of_a_folder(file_or_folder_path)
+            file_or_folder_size_in_bytes = disk.get_folder_size(file_or_folder_path)
+
+        folder_path_list_relative_to_root_folder = []
+        file_path_list_relative_to_root_folder = []
+        file_path_content_hash_list = []
+        if is_single_file == True:
+            part_of_file_or_folder_path = file_or_folder_path[len(root_folder):]
+            file_path_list_relative_to_root_folder.append(part_of_file_or_folder_path)
+            file_path_content_hash_list.append(disk.get_hash_of_a_file_by_using_sha256(file_or_folder_path))
+        else:
+            files = disk.get_files(file_or_folder_path)
+            for file in files:
+                if disk.is_directory(file):
+                    folder_path_list_relative_to_root_folder.append(file[len(root_folder):])
+                else:
+                    file_path_list_relative_to_root_folder.append(file[len(root_folder):])
+                    file_path_content_hash_list.append(disk.get_hash_of_a_file_by_using_sha256(file))
+
+        a_resource = ytorrent_objects.A_Resource(
+            name=name,
+            is_single_file=is_single_file,
+            file_or_folder_hash=file_or_folder_hash,
+            file_or_folder_size_in_bytes=str(file_or_folder_size_in_bytes),
+            root_folder=root_folder,
+            folder_path_list_relative_to_root_folder=folder_path_list_relative_to_root_folder,
+            file_path_list_relative_to_root_folder=file_path_list_relative_to_root_folder,
+            file_path_content_hash_list=file_path_content_hash_list
+        )
+
+        print(a_resource)
 
     def search(self, keywords: str):
         pass
@@ -367,7 +414,7 @@ class Command_Line_Interface():
         # Here is should do a check to make sure the magic magnet service is in running by do a localhost ping, if it isn't, then start that service, print this service tracker ip, and ask user to open another bash to execute their command again
 
     def seed(self, file_or_folder_path: str):
-        pass
+        self.ytorrent_client.seed(file_or_folder_path)
         # seed this file, put it into database, do not allow user to seed the same resource twice
 
     def search(self, keywords: str):
