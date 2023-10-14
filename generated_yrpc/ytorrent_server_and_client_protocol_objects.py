@@ -169,16 +169,12 @@ class Need_To_Upload_Notification(YRPC_OBJECT_BASE_CLASS):
     file_path_relative_to_root_folder: str | None = None
     file_segment_size_in_kb: int | None = None
     segment_number: int | None = None
-    _current_time_in_timestamp: str | None = None
-    _lock: bool | None = None
 
     _property_name_to_its_type_dict = {
         "file_or_folder_hash": str,
         "file_path_relative_to_root_folder": str,
         "file_segment_size_in_kb": int,
         "segment_number": int,
-        "_current_time_in_timestamp": str,
-        "_lock": bool,
     }
 
     @dataclass()
@@ -187,8 +183,6 @@ class Need_To_Upload_Notification(YRPC_OBJECT_BASE_CLASS):
         file_path_relative_to_root_folder: str = "file_path_relative_to_root_folder"
         file_segment_size_in_kb: str = "file_segment_size_in_kb"
         segment_number: str = "segment_number"
-        _current_time_in_timestamp: str = "_current_time_in_timestamp"
-        _lock: str = "_lock"
 
     def from_dict(self, dict: dict[str, Any]):
         new_variable: Need_To_Upload_Notification = super().from_dict(dict)
@@ -203,6 +197,7 @@ class File_Segment(YRPC_OBJECT_BASE_CLASS):
     segment_number: int | None = None
     file_segment_bytes_in_base64: str | None = None
     _current_time_in_timestamp: str | None = None
+    _download_finished: str | None = None
 
     _property_name_to_its_type_dict = {
         "file_or_folder_hash": str,
@@ -211,6 +206,7 @@ class File_Segment(YRPC_OBJECT_BASE_CLASS):
         "segment_number": int,
         "file_segment_bytes_in_base64": str,
         "_current_time_in_timestamp": str,
+        "_download_finished": str,
     }
 
     @dataclass()
@@ -221,9 +217,39 @@ class File_Segment(YRPC_OBJECT_BASE_CLASS):
         segment_number: str = "segment_number"
         file_segment_bytes_in_base64: str = "file_segment_bytes_in_base64"
         _current_time_in_timestamp: str = "_current_time_in_timestamp"
+        _download_finished: str = "_download_finished"
 
     def from_dict(self, dict: dict[str, Any]):
         new_variable: File_Segment = super().from_dict(dict)
+        return new_variable
+
+
+@dataclass()
+class A_Whole_File(YRPC_OBJECT_BASE_CLASS):
+    file_or_folder_hash: str | None = None
+    need_to_download_resource: bool | None = None
+    download_complete: bool | None = None
+    a_resource: A_Resource | None = None
+    file_segment_lit: list[File_Segment] | None = None
+
+    _property_name_to_its_type_dict = {
+        "file_or_folder_hash": str,
+        "need_to_download_resource": bool,
+        "download_complete": bool,
+        "a_resource": A_Resource,
+        "file_segment_lit": File_Segment,
+    }
+
+    @dataclass()
+    class _key_string_dict:
+        file_or_folder_hash: str = "file_or_folder_hash"
+        need_to_download_resource: str = "need_to_download_resource"
+        download_complete: str = "download_complete"
+        a_resource: str = "a_resource"
+        file_segment_lit: str = "file_segment_lit"
+
+    def from_dict(self, dict: dict[str, Any]):
+        new_variable: A_Whole_File = super().from_dict(dict)
         return new_variable
 
 
@@ -350,6 +376,46 @@ class Search_Response(YRPC_OBJECT_BASE_CLASS):
 
     def from_dict(self, dict: dict[str, Any]):
         new_variable: Search_Response = super().from_dict(dict)
+        return new_variable
+
+
+@dataclass()
+class Download_Resource_Info_Request(YRPC_OBJECT_BASE_CLASS):
+    file_or_folder_hash: str | None = None
+
+    _property_name_to_its_type_dict = {
+        "file_or_folder_hash": str,
+    }
+
+    @dataclass()
+    class _key_string_dict:
+        file_or_folder_hash: str = "file_or_folder_hash"
+
+    def from_dict(self, dict: dict[str, Any]):
+        new_variable: Download_Resource_Info_Request = super().from_dict(dict)
+        return new_variable
+
+
+@dataclass()
+class Download_Resource_Info_Response(YRPC_OBJECT_BASE_CLASS):
+    error: str | None = None
+    try_it_later_when_other_need_to_upload: bool | None = None
+    a_resource: A_Resource | None = None
+
+    _property_name_to_its_type_dict = {
+        "error": str,
+        "try_it_later_when_other_need_to_upload": bool,
+        "a_resource": A_Resource,
+    }
+
+    @dataclass()
+    class _key_string_dict:
+        error: str = "error"
+        try_it_later_when_other_need_to_upload: str = "try_it_later_when_other_need_to_upload"
+        a_resource: str = "a_resource"
+
+    def from_dict(self, dict: dict[str, Any]):
+        new_variable: Download_Resource_Info_Response = super().from_dict(dict)
         return new_variable
 
 

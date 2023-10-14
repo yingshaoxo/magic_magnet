@@ -70,6 +70,15 @@ class Client_ytorrent_server_and_client_protocol:
         else:
             return Search_Response().from_dict(result)
 
+    def download_resource_info(self, item: Download_Resource_Info_Request, ignore_error: bool | None=None) -> Download_Resource_Info_Response | None:
+        result = self._get_reponse_or_error_by_url_path_and_input("download_resource_info", item.to_dict())
+        if self._special_error_key in result.keys():
+            if ((ignore_error == None) or ((ignore_error != None) and (not ignore_error))):
+                self._error_handle_function(result[self._special_error_key])
+            return None
+        else:
+            return Download_Resource_Info_Response().from_dict(result)
+
     def download(self, item: Download_Request, ignore_error: bool | None=None) -> Download_Response | None:
         result = self._get_reponse_or_error_by_url_path_and_input("download", item.to_dict())
         if self._special_error_key in result.keys():

@@ -31,6 +31,18 @@ class Service_ytorrent_server_and_client_protocol:
 
         return default_response
 
+    def download_resource_info(self, headers: dict[str, str], item: Download_Resource_Info_Request) -> Download_Resource_Info_Response:
+        default_response = Download_Resource_Info_Response()
+
+        try:
+            pass
+        except Exception as e:
+            print(f"Error: {e}")
+            #default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
+
     def download(self, headers: dict[str, str], item: Download_Request) -> Download_Response:
         default_response = Download_Response()
 
@@ -99,6 +111,10 @@ def run(service_instance: Service_ytorrent_server_and_client_protocol, port: str
         elif (request_url == "search"):
             correct_item = Search_Request().from_dict(item)
             return json.dumps((service_instance.search(headers, correct_item)).to_dict())
+
+        elif (request_url == "download_resource_info"):
+            correct_item = Download_Resource_Info_Request().from_dict(item)
+            return json.dumps((service_instance.download_resource_info(headers, correct_item)).to_dict())
 
         elif (request_url == "download"):
             correct_item = Download_Request().from_dict(item)

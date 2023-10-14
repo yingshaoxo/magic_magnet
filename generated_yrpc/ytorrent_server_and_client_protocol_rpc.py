@@ -37,6 +37,18 @@ class Service_ytorrent_server_and_client_protocol:
 
         return default_response
 
+    async def download_resource_info(self, headers: dict[str, str], item: Download_Resource_Info_Request) -> Download_Resource_Info_Response:
+        default_response = Download_Resource_Info_Response()
+
+        try:
+            pass
+        except Exception as e:
+            print(f"Error: {e}")
+            #default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
+
     async def download(self, headers: dict[str, str], item: Download_Request) -> Download_Response:
         default_response = Download_Response()
 
@@ -98,6 +110,12 @@ def init(service_instance: Any):
         item = Search_Request().from_dict(item.to_dict())
         headers = dict(request.headers.items())
         return (await service_instance.search(headers, item)).to_dict()
+
+    @router.post("/download_resource_info/", tags=["ytorrent_server_and_client_protocol"])
+    async def download_resource_info(request: Request, item: Download_Resource_Info_Request) -> Download_Resource_Info_Response:
+        item = Download_Resource_Info_Request().from_dict(item.to_dict())
+        headers = dict(request.headers.items())
+        return (await service_instance.download_resource_info(headers, item)).to_dict()
 
     @router.post("/download/", tags=["ytorrent_server_and_client_protocol"])
     async def download(request: Request, item: Download_Request) -> Download_Response:

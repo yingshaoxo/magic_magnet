@@ -13,6 +13,7 @@ syntax = "proto3";
 service ytorrent_service {
     rpc seed (Seed_Request) returns (Seed_Response); // user should do this almost all the time, the default polling time is 60 seconds
     rpc search (Search_Request) returns (Search_Response);
+    rpc download_resource_info (Download_Resource_Info_Request) returns (Download_Resource_Info_Response); // user should do this almost all the time if they want to download something by use using a hash string
     rpc download (Download_Request) returns (Download_Response); // user should do this almost all the time if they want to download something, the default polling time is 60 seconds
     rpc upload (Upload_Request) returns (Upload_Response);
     rpc get_shared_tracker_list (Get_Shared_Tracker_List_Request) returns (Get_Shared_Tracker_List_Response); // When the server could directly get /version from client host ip, which means they has public ip, then we add that ip into this list
@@ -53,6 +54,15 @@ message File_Segment {
     int64 segment_number = 4; // start from 1
     string file_segment_bytes_in_base64 = 5;
     string _current_time_in_timestamp = 6;
+    string _download_finished = 7;
+}
+
+message A_Whole_File {
+    string file_or_folder_hash = 1;
+    bool need_to_download_resource = 2;
+    bool download_complete = 3;
+    A_Resource a_resource = 4;
+    repeated File_Segment file_segment_lit = 5;
 }
 
 message Seed_Request {
@@ -85,6 +95,16 @@ message Search_Request {
 message Search_Response {
     optional string error = 1;
     repeated A_Resource resource_list = 2;
+}
+
+message Download_Resource_Info_Request {
+    string file_or_folder_hash = 1;
+}
+
+message Download_Resource_Info_Response {
+    string error = 1;
+    bool try_it_later_when_other_need_to_upload = 2;
+    A_Resource a_resource = 3;
 }
 
 message Download_Request {

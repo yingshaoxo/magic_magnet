@@ -11,13 +11,14 @@ import os
 import re
 import json
 
-from auto_everything.terminal import Terminal
+from auto_everything.terminal import Terminal, Terminal_User_Interface
 from auto_everything.python import Python
 from auto_everything.disk import Disk, Store
 from auto_everything.io import IO
 from auto_everything.cryptography import Encryption_And_Decryption, Password_Generator, JWT_Tool
 from auto_everything.time import Time
 terminal = Terminal()
+terminal_user_interface = Terminal_User_Interface()
 disk = Disk()
 python = Python()
 io_ = IO()
@@ -95,6 +96,8 @@ _tracker_ip_or_url_list = os.getenv("tracker_ip_or_url_list")
 if _tracker_ip_or_url_list is not None:
     if "," in _tracker_ip_or_url_list:
         YTORRENT_CONFIG.tracker_ip_or_url_list = [one.strip() for one in _tracker_ip_or_url_list.split(",")]
+    else:
+        YTORRENT_CONFIG.tracker_ip_or_url_list = [_tracker_ip_or_url_list.strip()]
 
 
 def refactor_database():
@@ -150,10 +153,32 @@ class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rp
         default_response = ytorrent_objects.Search_Response()
 
         try:
-            pass
+            resource_search_result_list = database_excutor_for_remote_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource(
+                name=item.search_input
+            ))
+            default_response.resource_list = resource_search_result_list
         except Exception as e:
             print(f"Error: {e}")
-            #default_response.error = str(e)
+            default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
+
+    def download_resource_info(self, headers: dict[str, str], item: ytorrent_objects.Download_Resource_Info_Request) -> ytorrent_objects.Download_Resource_Info_Response:
+        default_response = ytorrent_objects.Download_Resource_Info_Response()
+
+        try:
+            resource_search_result_list = database_excutor_for_remote_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource(
+                file_or_folder_hash=item.file_or_folder_hash
+            ))
+            if len(resource_search_result_list) > 0:
+                default_response.a_resource = resource_search_result_list[0]
+                default_response.try_it_later_when_other_need_to_upload = False
+            else:
+                default_response.try_it_later_when_other_need_to_upload = True
+        except Exception as e:
+            print(f"Error: {e}")
+            default_response.error = str(e)
             #default_response.success = False
 
         return default_response
@@ -180,6 +205,13 @@ class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rp
                     default_response.file_segment_bytes_in_base64 = file_segment.file_segment_bytes_in_base64
                     default_response.try_it_later_when_other_need_to_upload = False
                     return default_response
+                else:
+                    # ask someone to upload if there has no exists file segments
+                    need_to_upload_list = database_excutor_for_remote_service.Need_To_Upload_Notification.search(item_filter=
+                        item.need_to_upload_notification
+                    )
+                    if len(need_to_upload_list) == 0:
+                        database_excutor_for_remote_service.Need_To_Upload_Notification.add(item.need_to_upload_notification)
 
                 current_time = time_.get_datetime_object_from_timestamp(time_.get_current_timestamp_in_10_digits_format())
                 if ((current_time - start_time).seconds >= 60):
@@ -332,21 +364,20 @@ def run_local_yrpc_service(port: str):
     ytorrent_server_and_client_protocol_pure_python_rpc.run(service_instance, port=port, html_folder_path=vue_html_file_folder)
 
 
-def local_background_main_process():
+def get_remote_client_list() -> list[ytorrent_server_and_client_protocol_pure_python_rpc_client.Client_ytorrent_server_and_client_protocol]:
+    remote_service_address_list = list(set(YTORRENT_CONFIG.tracker_ip_or_url_list))
+    client_list = []
+    for an_address in remote_service_address_list:
+        remote_client = ytorrent_server_and_client_protocol_pure_python_rpc_client.Client_ytorrent_server_and_client_protocol(service_url=an_address)
+        client_list.append(remote_client)
+    return client_list
+
+def local_background_seeding_process():
     # this should be a single while loop, which does everything that needs to work for every x seconds
     project_root_folder = disk.get_directory_path(os.path.realpath(os.path.abspath(__file__)))
 
     remote_service_address = f"http://127.0.0.1:{YTORRENT_CONFIG.default_remote_service_port}"
     local_service_address = f"http://127.0.0.1:{YTORRENT_CONFIG.default_local_service_port}"
-
-    remote_service_address_list = list(set(YTORRENT_CONFIG.tracker_ip_or_url_list))
-
-    def get_remote_client_list() -> list[ytorrent_server_and_client_protocol_pure_python_rpc_client.Client_ytorrent_server_and_client_protocol]:
-        client_list = []
-        for an_address in remote_service_address_list:
-            remote_client = ytorrent_server_and_client_protocol_pure_python_rpc_client.Client_ytorrent_server_and_client_protocol(service_url=an_address)
-            client_list.append(remote_client)
-        return client_list
 
     client_list = get_remote_client_list()
 
@@ -398,11 +429,52 @@ def local_background_main_process():
         sleep(1)
 
 
+def local_background_download_process():
+    # this should be a single while loop, which does everything that needs to work for every x seconds
+    project_root_folder = disk.get_directory_path(os.path.realpath(os.path.abspath(__file__)))
+
+    remote_service_address = f"http://127.0.0.1:{YTORRENT_CONFIG.default_remote_service_port}"
+    local_service_address = f"http://127.0.0.1:{YTORRENT_CONFIG.default_local_service_port}"
+
+    client_list = get_remote_client_list()
+
+    def do_the_downloading_based_on_local_database_data():
+        a_whole_file = ytorrent_objects.A_Whole_File(
+            download_complete=False
+        )
+        a_search_result_list = database_excutor_for_local_service.A_Whole_File.search(item_filter=a_whole_file)
+
+        if (len(a_search_result_list) == 0):
+            return
+        else:
+            for a_whole_file in a_search_result_list:
+                # you may check if all segments get downloaded successfully or not, if success, add success flag to a_whole_file, make it a whole file to disk
+
+                if a_whole_file.need_to_download_resource == True:
+                    need_to_download_resource = True
+                else:
+                    need_to_download_resource = False
+
+                for client in client_list:
+                    if need_to_download_resource == True:
+                        # download the resource, then update a_whole_file
+                    else:
+                        # download that file segment directly
+
+    while True:
+        try:
+            do_the_downloading_based_on_local_database_data()
+        except Exception as e:
+            print(e)
+        sleep(3)
+
+
 def start_all_service():
     process_list = [
         multiprocessing.Process(target=run_remote_yrpc_service, args=("1111",)),
         multiprocessing.Process(target=run_local_yrpc_service, args=("1212",)),
-        multiprocessing.Process(target=local_background_main_process, args=()),
+        multiprocessing.Process(target=local_background_seeding_process, args=()),
+        multiprocessing.Process(target=local_background_download_process, args=()),
     ]
 
     def kill_all_process():
@@ -526,13 +598,59 @@ class Ytorrent_Client():
             raise Exception(f"The file/folder you want to seed is already in seeding: {file_or_folder_path}")
 
         print(a_resource)
+        print(f"This file is in seeding now: {file_or_folder_path}")
 
     def search(self, keywords: str):
-        pass
+        client_list = get_remote_client_list()
+
+        def page_seperation(page_size:int, current_page:int):
+            search_request = ytorrent_objects.Search_Request(
+                search_input = keywords.strip(),
+                page_size = page_size,
+                page_number = current_page
+            )
+            for client in client_list:
+                search_response = client.search(search_request)
+                if search_response.error != None:
+                    print(search_response.error)
+                    continue
+                else:
+                    final_result = []
+                    if search_response.resource_list == None:
+                        continue
+                    for one in search_response.resource_list:
+                        name = one.name.replace("|", "")
+                        if len(name)>30:
+                            name = name[:15] + "..." + name[-15:]
+                        file_size = disk.get_file_size(None, "MB", int(one.file_or_folder_size_in_bytes))
+                        hash_code = one.file_or_folder_hash
+                        final_result.append((f"{name} ({file_size}MB) | magnet_magic:?xt={hash_code}&tr={client._service_url}", None))
+                    return final_result
+            return []
+        return page_seperation
         # do search on the network, here the network is our database, has to have page seperation, for each resource, you should give user a certain magnet link like: magnet_magic:?xt=xxx
 
     def download(self, magic_magnet_link: str):
-        pass
+        # magnet_magic:?xt=c32c6c252901fc7afaa755015993e29a63e644ec397aa31d65536959dcfedf12&tr=http://192.168.49.111:1111
+        hash_code = magic_magnet_link.split("?xt=")[1].split("&")[0]
+        tracker_ip_list = []
+        splits = magic_magnet_link.split("&tr=")
+        for one in splits:
+            if one.startswith("http"):
+                tracker_ip_list.append(one)
+        # need to find a way to share new tracker_ip_list to Ytorrent_Config, one possible way is to use auto_everything store to save that config as a json object, then whenever it get changed, update that config object in memory
+
+        # need to create a list of Need_To_Upload_Notification in database, so the background process will download it one by one
+        a_whole_file = ytorrent_objects.A_Whole_File(
+            file_or_folder_hash=hash_code,
+            download_complete=False
+        )
+        result_list = database_excutor_for_local_service.A_Whole_File.search(item_filter=a_whole_file)
+        if (len(result_list) == 0):
+            database_excutor_for_local_service.A_Whole_File.add(item=a_whole_file)
+            print("The download is started.")
+        else:
+            raise Exception(f"The file/folder you want to download is already in downloading: {magic_magnet_link}")
 
     def stop(self):
         """
@@ -547,18 +665,19 @@ class Ytorrent_Client():
 class Command_Line_Interface():
     def __init__(self) -> None:
         self.ytorrent_client = Ytorrent_Client()
-        # Here is should do a check to make sure the magic magnet service is in running by do a localhost ping, if it isn't, then start that service, print this service tracker ip, and ask user to open another bash to execute their command again
 
     def seed(self, file_or_folder_path: str):
         self.ytorrent_client.seed(file_or_folder_path)
-        # seed this file, put it into database, do not allow user to seed the same resource twice
 
     def search(self, keywords: str):
-        pass
-        # do search on the network, here the network is our database, has to have page seperation, for each resource, you should give user a certain magnet link like: magnet_magic:?xt=xxx
+        page_seperation_function = self.ytorrent_client.search(keywords)
+        result = terminal_user_interface.selection_box(text="Please select one:", selections=[], seperate_page_loading_function=page_seperation_function)
+        print()
+        splits = result.split(" | ")
+        print(splits[1])
 
     def download(self, magic_magnet_link: str):
-        pass
+        self.ytorrent_client.download(magic_magnet_link)
 
     def stop(self):
         """
