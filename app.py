@@ -109,21 +109,36 @@ def refactor_database():
 
 class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rpc.Service_ytorrent_server_and_client_protocol):
     def seed(self, headers: dict[str, str], item: ytorrent_objects.Seed_Request) -> ytorrent_objects.Seed_Response:
-        global SERVER_CONFIG
         default_response = ytorrent_objects.Seed_Response()
+
+        resource_search_result_list = database_excutor_for_remote_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource(
+            file_or_folder_hash=item.a_resource.file_or_folder_hash
+        ))
+        if len(resource_search_result_list) == 0:
+            database_excutor_for_remote_service.A_Resource.add(item=item.a_resource)
 
         try:
             start_time = time_.get_datetime_object_from_timestamp(time_.get_current_timestamp_in_10_digits_format())
             # check if there has any user wanted to download a file or folder this seeder provides
             # if so, return the download request
-            # this check should be in a while loop, we'll check it for every 1 second
-            """
+            # this check should let the user wait for 60 seconds
+            while True:
+                # check if someone wants to download something
+                need_to_upload_list = database_excutor_for_remote_service.Need_To_Upload_Notification.search(item_filter=
+                    ytorrent_objects.Need_To_Upload_Notification(file_or_folder_hash=item.a_resource.file_or_folder_hash)
+                )
+                if len(need_to_upload_list) > 0:
+                    # someone needs to download a file or folder
+                    default_response.need_to_upload_notification_list += need_to_upload_list
+                    default_response.someone_needs_you_to_upload_your_file = True
+                    default_response.success = True
+                    return default_response
+
                 current_time = time_.get_datetime_object_from_timestamp(time_.get_current_timestamp_in_10_digits_format())
                 if ((current_time - start_time).seconds >= 60):
                     # it is just a normal timeout, the user should make another seed request immediatly
                     default_response.success = True
                     return default_response
-            """
         except Exception as e:
             print(f"Error: {e}")
             #default_response.error = str(e)
@@ -147,10 +162,33 @@ class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rp
         default_response = ytorrent_objects.Download_Response()
 
         try:
-            pass
+            start_time = time_.get_datetime_object_from_timestamp(time_.get_current_timestamp_in_10_digits_format())
+            # check if there has an upload matchs user needs
+            # if so, return that upload 
+            # this check should let the user wait for 60 seconds
+            while True:
+                file_segment_list = database_excutor_for_remote_service.File_Segment.search(item_filter=
+                    ytorrent_objects.File_Segment(
+                        file_or_folder_hash=item.need_to_upload_notification.file_or_folder_hash,
+                        file_path_relative_to_root_folder=item.need_to_upload_notification.file_path_relative_to_root_folder,
+                        file_segment_size_in_kb=item.need_to_upload_notification.file_segment_size_in_kb,
+                        segment_number=item.need_to_upload_notification.segment_number
+                    )
+                )
+                if len(file_segment_list) > 0:
+                    file_segment = file_segment_list[0]
+                    default_response.file_segment_bytes_in_base64 = file_segment.file_segment_bytes_in_base64
+                    default_response.try_it_later_when_other_need_to_upload = False
+                    return default_response
+
+                current_time = time_.get_datetime_object_from_timestamp(time_.get_current_timestamp_in_10_digits_format())
+                if ((current_time - start_time).seconds >= 60):
+                    # it is just a normal timeout, the user should make another seed request immediatly
+                    default_response.try_it_later_when_other_need_to_upload = True
+                    return default_response
         except Exception as e:
             print(f"Error: {e}")
-            #default_response.error = str(e)
+            default_response.error = str(e)
             #default_response.success = False
 
         return default_response
@@ -159,7 +197,24 @@ class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rp
         default_response = ytorrent_objects.Upload_Response()
 
         try:
-            pass
+            file_segment_list = database_excutor_for_remote_service.File_Segment.search(item_filter=
+                ytorrent_objects.File_Segment(
+                    file_or_folder_hash=item.need_to_upload_notification.file_or_folder_hash,
+                    file_path_relative_to_root_folder=item.need_to_upload_notification.file_path_relative_to_root_folder,
+                    file_segment_size_in_kb=item.need_to_upload_notification.file_segment_size_in_kb,
+                    segment_number=item.need_to_upload_notification.segment_number
+                )
+            )
+            if len(file_segment_list) == 0:
+                database_excutor_for_remote_service.File_Segment.add(item=ytorrent_objects.File_Segment(
+                    file_or_folder_hash=item.need_to_upload_notification.file_or_folder_hash,
+                    file_path_relative_to_root_folder=item.need_to_upload_notification.file_path_relative_to_root_folder,
+                    file_segment_size_in_kb=item.need_to_upload_notification.file_segment_size_in_kb,
+                    segment_number=item.need_to_upload_notification.segment_number,
+                    file_segment_bytes_in_base64=item.file_segment_bytes_in_base64,
+                    _current_time_in_timestamp=time_.get_current_timestamp_in_10_digits_format()
+                ))
+            default_response.success = True
         except Exception as e:
             print(f"Error: {e}")
             #default_response.error = str(e)
@@ -188,7 +243,6 @@ def run_remote_yrpc_service(port: str):
 
 class Ytorrent_Local_Service(ytorrent_server_and_client_protocol_pure_python_rpc.Service_ytorrent_server_and_client_protocol):
     def seed(self, headers: dict[str, str], item: ytorrent_objects.Seed_Request) -> ytorrent_objects.Seed_Response:
-        global SERVER_CONFIG
         default_response = ytorrent_objects.Seed_Response()
 
         try:
@@ -325,7 +379,7 @@ def local_background_main_process():
                                     if not disk.exists(target_file_path):
                                         continue
 
-                                    bytesio_data = disk.get_part_of_a_file_in_bytesio_format_from_a_file(file_path=target_file_path, need_to_upload_notification.file_segment_size_in_kb*1024, need_to_upload_notification.segment_number)
+                                    bytesio_data = disk.get_part_of_a_file_in_bytesio_format_from_a_file(target_file_path, need_to_upload_notification.file_segment_size_in_kb*1024, need_to_upload_notification.segment_number)
                                     base64_data = disk.bytesio_to_base64(bytesio_data)
                                     upload_request = ytorrent_objects.Upload_Request(
                                         need_to_upload_notification=need_to_upload_notification,

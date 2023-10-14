@@ -208,12 +208,36 @@ class Yingshaoxo_Database_Need_To_Upload_Notification:
         return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
 
 
+class Yingshaoxo_Database_File_Segment:
+    def __init__(self, database_base_folder: str) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="File_Segment", database_base_folder=database_base_folder)
+
+    def add(self, item: File_Segment):
+        return self.database_of_yingshaoxo.add(data=item.to_dict())
+
+    def search(self, item_filter: File_Segment, page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[File_Segment]:
+        return [File_Segment().from_dict(one) for one in _search_function(self=self, item_filter=item_filter, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
+
+    def raw_search(self, one_row_json_string_handler: Callable[[str], dict[str, Any] | None], page_number:int|None=None, page_size:int|None=None, start_from:int=0, reverse:bool=False) -> list[File_Segment]:
+        '''
+        one_row_json_string_handler: a_function to handle search process. If it returns None, we'll ignore it, otherwise, we'll add the return value into the result list.
+        '''
+        return [File_Segment().from_dict(one) for one in _raw_search_function(self=self, one_row_json_string_handler=one_row_json_string_handler, page_number=page_number, page_size=page_size, start_from=start_from, reverse=reverse)]
+
+    def delete(self, item_filter: File_Segment):
+        return _delete(self=self, item_filter=item_filter)
+    
+    def update(self, old_item_filter: File_Segment, new_item: File_Segment):
+        return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
+
+
 class Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol:
     def __init__(self, database_base_folder: str):
         self._database_base_folder = database_base_folder
         self.Ytorrent_Config = Yingshaoxo_Database_Ytorrent_Config(database_base_folder=self._database_base_folder)
         self.A_Resource = Yingshaoxo_Database_A_Resource(database_base_folder=self._database_base_folder)
         self.Need_To_Upload_Notification = Yingshaoxo_Database_Need_To_Upload_Notification(database_base_folder=self._database_base_folder)
+        self.File_Segment = Yingshaoxo_Database_File_Segment(database_base_folder=self._database_base_folder)
 
 
 if __name__ == "__main__":

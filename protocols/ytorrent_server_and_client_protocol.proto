@@ -41,11 +41,18 @@ message A_Resource {
 
 message Need_To_Upload_Notification {
     string file_or_folder_hash = 1;
-    string file_path_relative_to_root_folder = 2; // if this is a single file, ignore it 
+    string file_path_relative_to_root_folder = 2;
     int64 file_segment_size_in_kb = 3; // by default, the server will only accept 1MB segment request, but it can get changed in envirnoment configuration
     int64 segment_number = 4; // start from 1
-    string _current_time_in_timestamp = 5;
-    bool _lock = 6;
+}
+
+message File_Segment {
+    string file_or_folder_hash = 1;
+    string file_path_relative_to_root_folder = 2;
+    int64 file_segment_size_in_kb = 3; // by default, the server will only accept 1MB segment request, but it can get changed in envirnoment configuration
+    int64 segment_number = 4; // start from 1
+    string file_segment_bytes_in_base64 = 5;
+    string _current_time_in_timestamp = 6;
 }
 
 message Seed_Request {
@@ -81,10 +88,7 @@ message Search_Response {
 }
 
 message Download_Request {
-    string file_or_folder_hash = 1;
-    string file_path_relative_to_root_folder = 2; // if this is a single file, ignore it 
-    int64 file_segment_size_in_kb = 3; // by default, the server will only accept 1MB segment request, but it can get changed in envirnoment configuration
-    int64 segment_number = 4; // start from 1
+    Need_To_Upload_Notification need_to_upload_notification = 1;
 }
 
 message Download_Response {

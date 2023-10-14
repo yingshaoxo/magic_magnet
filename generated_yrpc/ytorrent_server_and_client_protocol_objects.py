@@ -196,6 +196,38 @@ class Need_To_Upload_Notification(YRPC_OBJECT_BASE_CLASS):
 
 
 @dataclass()
+class File_Segment(YRPC_OBJECT_BASE_CLASS):
+    file_or_folder_hash: str | None = None
+    file_path_relative_to_root_folder: str | None = None
+    file_segment_size_in_kb: int | None = None
+    segment_number: int | None = None
+    file_segment_bytes_in_base64: str | None = None
+    _current_time_in_timestamp: str | None = None
+
+    _property_name_to_its_type_dict = {
+        "file_or_folder_hash": str,
+        "file_path_relative_to_root_folder": str,
+        "file_segment_size_in_kb": int,
+        "segment_number": int,
+        "file_segment_bytes_in_base64": str,
+        "_current_time_in_timestamp": str,
+    }
+
+    @dataclass()
+    class _key_string_dict:
+        file_or_folder_hash: str = "file_or_folder_hash"
+        file_path_relative_to_root_folder: str = "file_path_relative_to_root_folder"
+        file_segment_size_in_kb: str = "file_segment_size_in_kb"
+        segment_number: str = "segment_number"
+        file_segment_bytes_in_base64: str = "file_segment_bytes_in_base64"
+        _current_time_in_timestamp: str = "_current_time_in_timestamp"
+
+    def from_dict(self, dict: dict[str, Any]):
+        new_variable: File_Segment = super().from_dict(dict)
+        return new_variable
+
+
+@dataclass()
 class Seed_Request(YRPC_OBJECT_BASE_CLASS):
     a_resource: A_Resource | None = None
 
@@ -323,24 +355,15 @@ class Search_Response(YRPC_OBJECT_BASE_CLASS):
 
 @dataclass()
 class Download_Request(YRPC_OBJECT_BASE_CLASS):
-    file_or_folder_hash: str | None = None
-    file_path_relative_to_root_folder: str | None = None
-    file_segment_size_in_kb: int | None = None
-    segment_number: int | None = None
+    need_to_upload_notification: Need_To_Upload_Notification | None = None
 
     _property_name_to_its_type_dict = {
-        "file_or_folder_hash": str,
-        "file_path_relative_to_root_folder": str,
-        "file_segment_size_in_kb": int,
-        "segment_number": int,
+        "need_to_upload_notification": Need_To_Upload_Notification,
     }
 
     @dataclass()
     class _key_string_dict:
-        file_or_folder_hash: str = "file_or_folder_hash"
-        file_path_relative_to_root_folder: str = "file_path_relative_to_root_folder"
-        file_segment_size_in_kb: str = "file_segment_size_in_kb"
-        segment_number: str = "segment_number"
+        need_to_upload_notification: str = "need_to_upload_notification"
 
     def from_dict(self, dict: dict[str, Any]):
         new_variable: Download_Request = super().from_dict(dict)
