@@ -27,6 +27,7 @@ message Ytorrent_Config {
     int64 max_acceptable_file_segment_size_in_mb = 4; // default 1 mb
     int64 polling_waiting_time_in_seconds = 5; // default 60 seconds
     repeated string tracker_ip_or_url_list = 6;  // it is actually the server service ip/url, if non of those tracker is avaliable, then the search will return offline 'built-in chat data', for example, 'yingshaoxo's saying'
+    string download_folder_path = 7;
 }
 
 message A_Resource {
@@ -34,35 +35,37 @@ message A_Resource {
     bool is_single_file = 2; // in client, when search, show single file first
     string file_or_folder_hash = 3; // server will save this information into a dict where key is the file_or_folder_hash, where value is a list of A_Resource object
     string file_or_folder_size_in_bytes = 4; // just a symbol for human reading, may wrong
-    string root_folder = 5; // the base folder for those shared files
+    string root_folder = 5; // the base folder for those shared files, if download complete == False, you have to change this to local storage path
     repeated string folder_path_list_relative_to_root_folder = 6;
     repeated string file_path_list_relative_to_root_folder = 7;
-    repeated string file_path_content_hash_list = 8;
+    repeated int64 file_size_in_bytes_list = 8;
+    repeated string file_hash_list = 9;
+    repeated bool file_download_status_list = 10;// if download_complete==False, we'll iterate this dict, to download file that download_status == False; if you do the seed, this dict will be true for all values
+    bool download_complete = 11;// if you do the seed, the download_complete will be True at the beginning
 }
 
 message Need_To_Upload_Notification {
     string file_or_folder_hash = 1;
     string file_path_relative_to_root_folder = 2;
-    int64 file_segment_size_in_kb = 3; // by default, the server will only accept 1MB segment request, but it can get changed in envirnoment configuration
+    int64 file_segment_size_in_bytes = 3; // by default, the server will only accept 1MB segment request, but it can get changed in envirnoment configuration
     int64 segment_number = 4; // start from 1
 }
 
 message File_Segment {
     string file_or_folder_hash = 1;
     string file_path_relative_to_root_folder = 2;
-    int64 file_segment_size_in_kb = 3; // by default, the server will only accept 1MB segment request, but it can get changed in envirnoment configuration
+    int64 file_segment_size_in_bytes = 3; // by default, the server will only accept 1MB segment request, but it can get changed in envirnoment configuration
     int64 segment_number = 4; // start from 1
     string file_segment_bytes_in_base64 = 5;
     string _current_time_in_timestamp = 6;
-    string _download_finished = 7;
 }
 
 message A_Whole_File {
-    string file_or_folder_hash = 1;
-    bool need_to_download_resource = 2;
-    bool download_complete = 3;
-    A_Resource a_resource = 4;
-    repeated File_Segment file_segment_lit = 5;
+    // we only create this object when we need to download a file, if we successfully get this file downloaded, we'll release it to disk, then change the resource_file_download status to True
+    string file_hash = 1;
+    string root_folder = 2;
+    string file_name = 3;
+    repeated File_Segment file_segment_list = 4; // when client wants to download something, the client will generate all file_segments from A_Project, A_Project has file_list, each file can be seperated to file_segments. At the beginning, file_segment base64_data part can be None
 }
 
 message Seed_Request {

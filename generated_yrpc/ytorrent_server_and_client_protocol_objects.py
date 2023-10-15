@@ -101,6 +101,7 @@ class Ytorrent_Config(YRPC_OBJECT_BASE_CLASS):
     max_acceptable_file_segment_size_in_mb: int | None = None
     polling_waiting_time_in_seconds: int | None = None
     tracker_ip_or_url_list: list[str] | None = None
+    download_folder_path: str | None = None
 
     _property_name_to_its_type_dict = {
         "default_remote_service_port": int,
@@ -109,6 +110,7 @@ class Ytorrent_Config(YRPC_OBJECT_BASE_CLASS):
         "max_acceptable_file_segment_size_in_mb": int,
         "polling_waiting_time_in_seconds": int,
         "tracker_ip_or_url_list": str,
+        "download_folder_path": str,
     }
 
     @dataclass()
@@ -119,6 +121,7 @@ class Ytorrent_Config(YRPC_OBJECT_BASE_CLASS):
         max_acceptable_file_segment_size_in_mb: str = "max_acceptable_file_segment_size_in_mb"
         polling_waiting_time_in_seconds: str = "polling_waiting_time_in_seconds"
         tracker_ip_or_url_list: str = "tracker_ip_or_url_list"
+        download_folder_path: str = "download_folder_path"
 
     def from_dict(self, dict: dict[str, Any]):
         new_variable: Ytorrent_Config = super().from_dict(dict)
@@ -134,7 +137,10 @@ class A_Resource(YRPC_OBJECT_BASE_CLASS):
     root_folder: str | None = None
     folder_path_list_relative_to_root_folder: list[str] | None = None
     file_path_list_relative_to_root_folder: list[str] | None = None
-    file_path_content_hash_list: list[str] | None = None
+    file_size_in_bytes_list: list[int] | None = None
+    file_hash_list: list[str] | None = None
+    file_download_status_list: list[bool] | None = None
+    download_complete: bool | None = None
 
     _property_name_to_its_type_dict = {
         "name": str,
@@ -144,7 +150,10 @@ class A_Resource(YRPC_OBJECT_BASE_CLASS):
         "root_folder": str,
         "folder_path_list_relative_to_root_folder": str,
         "file_path_list_relative_to_root_folder": str,
-        "file_path_content_hash_list": str,
+        "file_size_in_bytes_list": int,
+        "file_hash_list": str,
+        "file_download_status_list": bool,
+        "download_complete": bool,
     }
 
     @dataclass()
@@ -156,7 +165,10 @@ class A_Resource(YRPC_OBJECT_BASE_CLASS):
         root_folder: str = "root_folder"
         folder_path_list_relative_to_root_folder: str = "folder_path_list_relative_to_root_folder"
         file_path_list_relative_to_root_folder: str = "file_path_list_relative_to_root_folder"
-        file_path_content_hash_list: str = "file_path_content_hash_list"
+        file_size_in_bytes_list: str = "file_size_in_bytes_list"
+        file_hash_list: str = "file_hash_list"
+        file_download_status_list: str = "file_download_status_list"
+        download_complete: str = "download_complete"
 
     def from_dict(self, dict: dict[str, Any]):
         new_variable: A_Resource = super().from_dict(dict)
@@ -167,13 +179,13 @@ class A_Resource(YRPC_OBJECT_BASE_CLASS):
 class Need_To_Upload_Notification(YRPC_OBJECT_BASE_CLASS):
     file_or_folder_hash: str | None = None
     file_path_relative_to_root_folder: str | None = None
-    file_segment_size_in_kb: int | None = None
+    file_segment_size_in_bytes: int | None = None
     segment_number: int | None = None
 
     _property_name_to_its_type_dict = {
         "file_or_folder_hash": str,
         "file_path_relative_to_root_folder": str,
-        "file_segment_size_in_kb": int,
+        "file_segment_size_in_bytes": int,
         "segment_number": int,
     }
 
@@ -181,7 +193,7 @@ class Need_To_Upload_Notification(YRPC_OBJECT_BASE_CLASS):
     class _key_string_dict:
         file_or_folder_hash: str = "file_or_folder_hash"
         file_path_relative_to_root_folder: str = "file_path_relative_to_root_folder"
-        file_segment_size_in_kb: str = "file_segment_size_in_kb"
+        file_segment_size_in_bytes: str = "file_segment_size_in_bytes"
         segment_number: str = "segment_number"
 
     def from_dict(self, dict: dict[str, Any]):
@@ -193,31 +205,28 @@ class Need_To_Upload_Notification(YRPC_OBJECT_BASE_CLASS):
 class File_Segment(YRPC_OBJECT_BASE_CLASS):
     file_or_folder_hash: str | None = None
     file_path_relative_to_root_folder: str | None = None
-    file_segment_size_in_kb: int | None = None
+    file_segment_size_in_bytes: int | None = None
     segment_number: int | None = None
     file_segment_bytes_in_base64: str | None = None
     _current_time_in_timestamp: str | None = None
-    _download_finished: str | None = None
 
     _property_name_to_its_type_dict = {
         "file_or_folder_hash": str,
         "file_path_relative_to_root_folder": str,
-        "file_segment_size_in_kb": int,
+        "file_segment_size_in_bytes": int,
         "segment_number": int,
         "file_segment_bytes_in_base64": str,
         "_current_time_in_timestamp": str,
-        "_download_finished": str,
     }
 
     @dataclass()
     class _key_string_dict:
         file_or_folder_hash: str = "file_or_folder_hash"
         file_path_relative_to_root_folder: str = "file_path_relative_to_root_folder"
-        file_segment_size_in_kb: str = "file_segment_size_in_kb"
+        file_segment_size_in_bytes: str = "file_segment_size_in_bytes"
         segment_number: str = "segment_number"
         file_segment_bytes_in_base64: str = "file_segment_bytes_in_base64"
         _current_time_in_timestamp: str = "_current_time_in_timestamp"
-        _download_finished: str = "_download_finished"
 
     def from_dict(self, dict: dict[str, Any]):
         new_variable: File_Segment = super().from_dict(dict)
@@ -226,27 +235,24 @@ class File_Segment(YRPC_OBJECT_BASE_CLASS):
 
 @dataclass()
 class A_Whole_File(YRPC_OBJECT_BASE_CLASS):
-    file_or_folder_hash: str | None = None
-    need_to_download_resource: bool | None = None
-    download_complete: bool | None = None
-    a_resource: A_Resource | None = None
-    file_segment_lit: list[File_Segment] | None = None
+    file_hash: str | None = None
+    root_folder: str | None = None
+    file_name: str | None = None
+    file_segment_list: list[File_Segment] | None = None
 
     _property_name_to_its_type_dict = {
-        "file_or_folder_hash": str,
-        "need_to_download_resource": bool,
-        "download_complete": bool,
-        "a_resource": A_Resource,
-        "file_segment_lit": File_Segment,
+        "file_hash": str,
+        "root_folder": str,
+        "file_name": str,
+        "file_segment_list": File_Segment,
     }
 
     @dataclass()
     class _key_string_dict:
-        file_or_folder_hash: str = "file_or_folder_hash"
-        need_to_download_resource: str = "need_to_download_resource"
-        download_complete: str = "download_complete"
-        a_resource: str = "a_resource"
-        file_segment_lit: str = "file_segment_lit"
+        file_hash: str = "file_hash"
+        root_folder: str = "root_folder"
+        file_name: str = "file_name"
+        file_segment_list: str = "file_segment_list"
 
     def from_dict(self, dict: dict[str, Any]):
         new_variable: A_Whole_File = super().from_dict(dict)

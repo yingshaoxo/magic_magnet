@@ -69,7 +69,8 @@ YTORRENT_CONFIG = ytorrent_objects.Ytorrent_Config(
     file_segments_memory_pool_size_in_mb=200,
     max_acceptable_file_segment_size_in_mb=1,
     polling_waiting_time_in_seconds=60,
-    tracker_ip_or_url_list=[]
+    tracker_ip_or_url_list=[],
+    download_folder_path="~/Downloads/Ytorrent_Download"
 )
 
 _default_remote_service_port = os.getenv("default_remote_service_port")
@@ -196,7 +197,7 @@ class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rp
                     ytorrent_objects.File_Segment(
                         file_or_folder_hash=item.need_to_upload_notification.file_or_folder_hash,
                         file_path_relative_to_root_folder=item.need_to_upload_notification.file_path_relative_to_root_folder,
-                        file_segment_size_in_kb=item.need_to_upload_notification.file_segment_size_in_kb,
+                        file_segment_size_in_bytes=item.need_to_upload_notification.file_segment_size_in_bytes,
                         segment_number=item.need_to_upload_notification.segment_number
                     )
                 )
@@ -233,7 +234,7 @@ class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rp
                 ytorrent_objects.File_Segment(
                     file_or_folder_hash=item.need_to_upload_notification.file_or_folder_hash,
                     file_path_relative_to_root_folder=item.need_to_upload_notification.file_path_relative_to_root_folder,
-                    file_segment_size_in_kb=item.need_to_upload_notification.file_segment_size_in_kb,
+                    file_segment_size_in_bytes=item.need_to_upload_notification.file_segment_size_in_bytes,
                     segment_number=item.need_to_upload_notification.segment_number
                 )
             )
@@ -241,7 +242,7 @@ class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rp
                 database_excutor_for_remote_service.File_Segment.add(item=ytorrent_objects.File_Segment(
                     file_or_folder_hash=item.need_to_upload_notification.file_or_folder_hash,
                     file_path_relative_to_root_folder=item.need_to_upload_notification.file_path_relative_to_root_folder,
-                    file_segment_size_in_kb=item.need_to_upload_notification.file_segment_size_in_kb,
+                    file_segment_size_in_bytes=item.need_to_upload_notification.file_segment_size_in_bytes,
                     segment_number=item.need_to_upload_notification.segment_number,
                     file_segment_bytes_in_base64=item.file_segment_bytes_in_base64,
                     _current_time_in_timestamp=time_.get_current_timestamp_in_10_digits_format()
@@ -382,7 +383,9 @@ def local_background_seeding_process():
     client_list = get_remote_client_list()
 
     def do_the_seeding_based_on_local_database_data():
-        resouce_list = database_excutor_for_local_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource())
+        resouce_list = database_excutor_for_local_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource(
+            download_complete=True
+        ))
         for a_resource in resouce_list:
             seed_request = ytorrent_objects.Seed_Request(a_resource=a_resource)
             for client in client_list:
@@ -410,7 +413,7 @@ def local_background_seeding_process():
                                     if not disk.exists(target_file_path):
                                         continue
 
-                                    bytesio_data = disk.get_part_of_a_file_in_bytesio_format_from_a_file(target_file_path, need_to_upload_notification.file_segment_size_in_kb*1024, need_to_upload_notification.segment_number)
+                                    bytesio_data = disk.get_part_of_a_file_in_bytesio_format_from_a_file(target_file_path, need_to_upload_notification.file_segment_size_in_bytes, need_to_upload_notification.segment_number)
                                     base64_data = disk.bytesio_to_base64(bytesio_data)
                                     upload_request = ytorrent_objects.Upload_Request(
                                         need_to_upload_notification=need_to_upload_notification,
@@ -438,28 +441,139 @@ def local_background_download_process():
 
     client_list = get_remote_client_list()
 
-    def do_the_downloading_based_on_local_database_data():
-        a_whole_file = ytorrent_objects.A_Whole_File(
-            download_complete=False
+    def download_a_file_segment(empty_file_segment: ytorrent_objects.File_Segment) -> str | None:
+        download_request = ytorrent_objects.Download_Request(
+            need_to_upload_notification=ytorrent_objects.Need_To_Upload_Notification(
+                file_or_folder_hash=empty_file_segment.file_or_folder_hash,
+                file_path_relative_to_root_folder=empty_file_segment.file_path_relative_to_root_folder,
+                file_segment_size_in_bytes=empty_file_segment.file_segment_size_in_bytes,
+                segment_number=empty_file_segment.segment_number
+            )
         )
-        a_search_result_list = database_excutor_for_local_service.A_Whole_File.search(item_filter=a_whole_file)
+        clients = get_remote_client_list()
+        for client in clients:
+            response = client.download(download_request)
+            if response.error != None:
+                print(response.error)
+                continue
+            else:
+                return response.file_segment_bytes_in_base64
+        return None
+
+    def mark_one_resource_download_success(a_resource: ytorrent_objects.A_Resource):
+        database_excutor_for_local_service.A_Resource.update(
+            old_item_filter=ytorrent_objects.A_Resource(file_or_folder_hash=a_resource.file_or_folder_hash),
+            new_item=ytorrent_objects.A_Resource(download_complete=True)
+        )
+
+    def mark_one_file_download_success(a_whole_file: ytorrent_objects.A_Whole_File, a_resource: ytorrent_objects.A_Resource):
+        target_index = a_resource.file_hash_list.index(a_whole_file.file_hash)
+        a_resource.file_download_status_list[target_index] = True
+        database_excutor_for_local_service.A_Resource.update(
+            old_item_filter=ytorrent_objects.A_Resource(file_or_folder_hash=a_resource.file_or_folder_hash),
+            new_item=ytorrent_objects.A_Resource(file_download_status_list=a_resource.file_download_status_list)
+        )
+
+    def export_a_whole_file_to_disk(a_whole_file: ytorrent_objects.A_Whole_File) -> bool:
+        if a_whole_file.root_folder == None:
+            download_folder = Ytorrent_Config.download_folder_path
+        else:
+            download_folder = a_whole_file.root_folder
+
+        target_path = disk.join_paths(download_folder, a_whole_file.file_name)
+        for segment in a_whole_file.file_segment_list:
+            part_data = disk.base64_to_bytes(segment.file_segment_bytes_in_base64)
+            with open(target_path, "ab") as f:
+                f.write(part_data)
+
+        real_hash = disk.get_hash_of_a_file_by_using_sha256(target_path)
+        target_hash = a_whole_file.file_hash
+        if (real_hash == target_hash):
+            return True
+        else:
+            return False
+
+    def do_the_downloading_based_on_local_database_data():
+        a_search_result_list = database_excutor_for_local_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource(
+            download_complete=False
+        ))
 
         if (len(a_search_result_list) == 0):
             return
         else:
-            for a_whole_file in a_search_result_list:
-                # you may check if all segments get downloaded successfully or not, if success, add success flag to a_whole_file, make it a whole file to disk
-
-                if a_whole_file.need_to_download_resource == True:
-                    need_to_download_resource = True
-                else:
-                    need_to_download_resource = False
-
+            for a_resource in a_search_result_list:
+                # you may check if all files get downloaded successfully or not, if success, set download_complete flag to A_Resource
                 for client in client_list:
-                    if need_to_download_resource == True:
-                        # download the resource, then update a_whole_file
+                    if a_resource.file_download_status_list != None:
+                        # You need to download Resource from network
+                        # download the resource, then update a_resource in database to complete details
+                        response = client.download_resource_info(ytorrent_objects.Download_Resource_Info_Request(
+                            file_or_folder_hash=a_resource.file_or_folder_hash
+                        ))
+                        if response.error != None:
+                            print(response.error)
+                        else:
+                            if response.a_resource != None:
+                                response.a_resource.download_complete = False
+                                response.a_resource.root_folder = Ytorrent_Config.download_folder_path
+                                response.a_resource.file_download_status_list = [False for one in response.a_resource.file_path_list_relative_to_root_folder]
+                                database_excutor_for_local_service.A_Resource.update(
+                                    old_item_filter=ytorrent_objects.A_Resource(
+                                        file_or_folder_hash=a_resource.file_or_folder_hash
+                                    ),
+                                    new_item=response.a_resource
+                                )
+                                continue
                     else:
-                        # download that file segment directly
+                        if all(a_resource.file_download_status_list):
+                            for a_folder in a_resource.folder_path_list_relative_to_root_folder:
+                                disk.create_a_folder(disk.join_paths(a_resource.root_folder, a_folder))
+                            mark_one_resource_download_success(a_resource)
+                            continue
+
+                        # download that files by iterate files, then create a_whole_file, then create file_segments 
+                        for index, a_file in enumerate(a_resource.file_path_list_relative_to_root_folder):
+                            download_complete = a_resource.file_download_status_list[index]
+                            file_hash = a_resource.file_hash_list[index]
+                            file_size = a_resource.file_size_in_bytes_list[index]
+                            if download_complete == True:
+                                continue
+
+                            a_whole_file = ytorrent_objects.A_Whole_File(
+                                file_hash=file_hash,
+                                root_folder=a_resource.root_folder,
+                                file_name=a_file,
+                                file_segment_list=[]
+                            )
+
+                            max_acceptable_file_segment_size_in_bytes = YTORRENT_CONFIG.max_acceptable_file_segment_size_in_mb * 1024 * 1024
+                            segments_number = file_size // max_acceptable_file_segment_size_in_bytes
+                            if (file_size % max_acceptable_file_segment_size_in_bytes) != 0:
+                                segment_number += 1
+                            file_segment_list = []
+                            for i in range(segment_number):
+                                a_file_segment = ytorrent_objects.File_Segment(
+                                    file_or_folder_hash=a_resource.file_or_folder_hash,
+                                    file_path_relative_to_root_folder=a_file,
+                                    file_segment_size_in_bytes=max_acceptable_file_segment_size_in_bytes,
+                                    segment_number=i+1,
+                                    file_segment_bytes_in_base64=None,
+                                    _current_time_in_timestamp=time_.get_current_timestamp_in_10_digits_format()
+                                )
+                                while True:
+                                    a_file_segment.file_segment_bytes_in_base64 = download_a_file_segment(a_file_segment)
+                                    if a_file_segment.file_segment_bytes_in_base64 != None:
+                                        break
+                                    sleep(3)
+                                file_segment_list.append(a_file_segment)
+
+                            a_whole_file.file_segment_list = file_segment_list
+
+                            success = export_a_whole_file_to_disk(a_whole_file)
+                            if success == True:
+                                mark_one_file_download_success(a_whole_file, a_resource)
+                            else:
+                                continue
 
     while True:
         try:
@@ -564,6 +678,7 @@ class Ytorrent_Client():
         folder_path_list_relative_to_root_folder = []
         file_path_list_relative_to_root_folder = []
         file_path_content_hash_list = []
+        file_size_in_bytes_list = []
         if is_single_file == True:
             part_of_file_or_folder_path = file_or_folder_path[len(root_folder):]
             file_path_list_relative_to_root_folder.append(part_of_file_or_folder_path)
@@ -576,6 +691,7 @@ class Ytorrent_Client():
                 else:
                     file_path_list_relative_to_root_folder.append(file[len(root_folder):])
                     file_path_content_hash_list.append(disk.get_hash_of_a_file_by_using_sha256(file))
+                    file_size_in_bytes_list.append(disk.get_file_size(file))
 
         a_resource = ytorrent_objects.A_Resource(
             name=name,
@@ -585,7 +701,10 @@ class Ytorrent_Client():
             root_folder=root_folder,
             folder_path_list_relative_to_root_folder=folder_path_list_relative_to_root_folder,
             file_path_list_relative_to_root_folder=file_path_list_relative_to_root_folder,
-            file_path_content_hash_list=file_path_content_hash_list
+            file_size_in_bytes_list=file_size_in_bytes_list,
+            file_hash_list=file_path_content_hash_list,
+            file_download_status_list=[True for one in file_path_content_hash_list],
+            download_complete=True,
         )
 
         a_search_result_list = database_excutor_for_local_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource(
@@ -641,16 +760,23 @@ class Ytorrent_Client():
         # need to find a way to share new tracker_ip_list to Ytorrent_Config, one possible way is to use auto_everything store to save that config as a json object, then whenever it get changed, update that config object in memory
 
         # need to create a list of Need_To_Upload_Notification in database, so the background process will download it one by one
-        a_whole_file = ytorrent_objects.A_Whole_File(
+        a_resource = ytorrent_objects.A_Resource(
             file_or_folder_hash=hash_code,
             download_complete=False
         )
-        result_list = database_excutor_for_local_service.A_Whole_File.search(item_filter=a_whole_file)
+        result_list = database_excutor_for_local_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource(
+            file_or_folder_hash=hash_code,
+        ))
         if (len(result_list) == 0):
-            database_excutor_for_local_service.A_Whole_File.add(item=a_whole_file)
+            a_resource.root_folder = Ytorrent_Config.download_folder_path
+            database_excutor_for_local_service.A_Resource.add(item=a_resource)
             print("The download is started.")
         else:
-            raise Exception(f"The file/folder you want to download is already in downloading: {magic_magnet_link}")
+            one = result_list[0]
+            if one.download_complete == True:
+                raise Exception(f"The file/folder you want to download is already complete: {magic_magnet_link}")
+            else:
+                raise Exception(f"The file/folder you want to download is already in downloading: {magic_magnet_link}")
 
     def stop(self):
         """
