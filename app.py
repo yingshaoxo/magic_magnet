@@ -105,10 +105,12 @@ def refactor_database():
     database_excutor_for_remote_service.A_Resource.database_of_yingshaoxo.refactor_database()
     database_excutor_for_remote_service.Ytorrent_Config.database_of_yingshaoxo.refactor_database()
     database_excutor_for_remote_service.Need_To_Upload_Notification.database_of_yingshaoxo.refactor_database()
+    database_excutor_for_remote_service.File_Segment.database_of_yingshaoxo.refactor_database()
 
     database_excutor_for_local_service.A_Resource.database_of_yingshaoxo.refactor_database()
     database_excutor_for_local_service.Ytorrent_Config.database_of_yingshaoxo.refactor_database()
     database_excutor_for_local_service.Need_To_Upload_Notification.database_of_yingshaoxo.refactor_database()
+    database_excutor_for_local_service.File_Segment.database_of_yingshaoxo.refactor_database()
 
 
 class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rpc.Service_ytorrent_server_and_client_protocol):
@@ -511,7 +513,7 @@ def local_background_download_process():
             download_folder = a_whole_file.root_folder
 
         target_path = disk.join_paths(download_folder, a_whole_file.file_name)
-        target_path = terminal.fix_path(target_path)
+        target_path = terminal.fix_path(target_path, startswith=True)
         target_path = disk.get_absolute_path(target_path)
         target_folder = disk.get_directory_path(target_path)
         disk.create_a_folder(target_folder)
@@ -826,7 +828,8 @@ class Ytorrent_Client():
         else:
             one = result_list[0]
             if one.download_complete == True:
-                target_path = terminal.fix_path(disk.join_paths(one.root_folder, one.name))
+                target_path = disk.join_paths(one.root_folder, one.name)
+                target_path = terminal.fix_path(target_path, startswith=True)
                 print(target_path)
                 if not disk.exists(target_path):
                     database_excutor_for_local_service.A_Resource.delete(ytorrent_objects.A_Resource(
@@ -876,4 +879,5 @@ class Command_Line_Interface():
 
 
 if __name__ == '__main__':
+    refactor_database()
     python.fire(Command_Line_Interface)
