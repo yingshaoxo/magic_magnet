@@ -133,7 +133,22 @@ class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rp
                 )
                 if len(need_to_upload_list) > 0:
                     # someone needs to download a file or folder
-                    default_response.need_to_upload_notification_list = need_to_upload_list
+                    # if that file segment is not in server, we ask the seeder to upload
+                    real_need_list = []
+                    for one in need_to_upload_list:
+                        segment_filter = ytorrent_objects.File_Segment(
+                                file_or_folder_hash=one.file_or_folder_hash,
+                                file_path_relative_to_root_folder=one.file_path_relative_to_root_folder,
+                                file_segment_size_in_bytes=one.file_segment_size_in_bytes,
+                                segment_number=one.segment_number
+                            )
+                        file_segment_list = database_excutor_for_remote_service.File_Segment.search(item_filter=
+                            segment_filter
+                        )
+                        if len(file_segment_list) == 0:
+                            real_need_list.append(one)
+
+                    default_response.need_to_upload_notification_list = real_need_list
                     default_response.someone_needs_you_to_upload_your_file = True
                     default_response.success = True
                     return default_response
@@ -434,7 +449,7 @@ def local_background_seeding_process():
                                         file_segment_bytes_in_base64=base64_data,
                                     )
                                     upload_response = client.upload(upload_request)
-                                    print("Uplode for ", need_to_upload_notification.file_path_relative_to_root_folder, need_to_upload_notification.segment_number, upload_response.success)
+                                    print("Upload for ", need_to_upload_notification.file_path_relative_to_root_folder, need_to_upload_notification.segment_number, upload_response.success)
                 except Exception as e:
                     print(e)
 
@@ -487,6 +502,7 @@ def local_background_download_process():
             old_item_filter=ytorrent_objects.A_Resource(file_or_folder_hash=a_resource.file_or_folder_hash),
             new_item=ytorrent_objects.A_Resource(file_download_status_list=a_resource.file_download_status_list)
         )
+        print(f"For this file, download complete marked: {a_whole_file.file_name}")
 
     def export_a_whole_file_to_disk(a_whole_file: ytorrent_objects.A_Whole_File) -> bool:
         if a_whole_file.root_folder == None:
@@ -508,9 +524,10 @@ def local_background_download_process():
             else:
                 with open(target_path, "wb") as f:
                     f.write(part_data)
-        real_hash = disk.get_hash_of_a_file_by_using_sha256(target_path)
+        real_hash = disk.get_hash_of_a_file_by_using_sha1(target_path)
         target_hash = a_whole_file.file_hash
         if (real_hash == target_hash):
+            print("Hash code matchs, download successfully")
             return True
         else:
             return False
@@ -694,14 +711,19 @@ class Ytorrent_Client():
         name = disk.get_file_name(file_or_folder_path)
         is_single_file = (not disk.is_directory(file_or_folder_path))
 
+        #print(root_folder, name)
+
         file_or_folder_hash = None
         file_or_folder_size_in_bytes = None
         if (is_single_file):
-            file_or_folder_hash = disk.get_hash_of_a_file_by_using_sha256(file_or_folder_path)
+            file_or_folder_hash = disk.get_hash_of_a_file_by_using_sha1(file_or_folder_path)
             file_or_folder_size_in_bytes = disk.get_file_size(file_or_folder_path)
         else:
-            file_or_folder_hash = disk.get_hash_of_a_folder(file_or_folder_path)
+            file_or_folder_hash = disk.get_hash_of_a_folder(file_or_folder_path, print_log=True)
             file_or_folder_size_in_bytes = disk.get_folder_size(file_or_folder_path)
+
+        #print(file_or_folder_hash)
+        #print(file_or_folder_size_in_bytes)
 
         folder_path_list_relative_to_root_folder = []
         file_path_list_relative_to_root_folder = []
@@ -710,7 +732,7 @@ class Ytorrent_Client():
         if is_single_file == True:
             part_of_file_or_folder_path = get_child_relative_path(root_folder, file_or_folder_path)
             file_path_list_relative_to_root_folder.append(part_of_file_or_folder_path)
-            file_path_content_hash_list.append(disk.get_hash_of_a_file_by_using_sha256(file_or_folder_path))
+            file_path_content_hash_list.append(disk.get_hash_of_a_file_by_using_sha1(file_or_folder_path))
             file_size_in_bytes_list.append(disk.get_file_size(file_or_folder_path))
         else:
             files = disk.get_files(file_or_folder_path)
@@ -720,7 +742,7 @@ class Ytorrent_Client():
                     folder_path_list_relative_to_root_folder.append(part_of_file_or_folder_path)
                 else:
                     file_path_list_relative_to_root_folder.append(part_of_file_or_folder_path)
-                    file_path_content_hash_list.append(disk.get_hash_of_a_file_by_using_sha256(file))
+                    file_path_content_hash_list.append(disk.get_hash_of_a_file_by_using_sha1(file))
                     file_size_in_bytes_list.append(disk.get_file_size(file))
 
         a_resource = ytorrent_objects.A_Resource(
