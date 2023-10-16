@@ -437,7 +437,7 @@ def local_background_seeding_process():
                                     target_resource = target_resource_list[0]
                                     target_project_path = disk.join_paths(target_resource.root_folder, target_resource.name)
                                     target_file_path = disk.join_paths(target_resource.root_folder, need_to_upload_notification.file_path_relative_to_root_folder)
-                                    print(target_resource.root_folder, need_to_upload_notification.file_path_relative_to_root_folder)
+                                    #print(target_resource.root_folder, need_to_upload_notification.file_path_relative_to_root_folder)
                                     if not disk.exists(target_project_path):
                                         database_excutor_for_local_service.A_Resource.delete(item_filter=target_resource)
                                         continue
@@ -451,6 +451,7 @@ def local_background_seeding_process():
                                         file_segment_bytes_in_base64=base64_data,
                                     )
                                     upload_response = client.upload(upload_request)
+                                    print()
                                     print("Upload for ", need_to_upload_notification.file_path_relative_to_root_folder, need_to_upload_notification.segment_number, upload_response.success)
                 except Exception as e:
                     print(e)
@@ -505,7 +506,8 @@ def local_background_download_process():
             old_item_filter=ytorrent_objects.A_Resource(file_or_folder_hash=a_resource.file_or_folder_hash),
             new_item=ytorrent_objects.A_Resource(file_download_status_list=a_resource.file_download_status_list)
         )
-        print(f"For this file, download complete marked: {a_whole_file.file_name}")
+        print(f"Download complete marked")
+        print()
 
     def export_a_whole_file_to_disk(a_whole_file: ytorrent_objects.A_Whole_File) -> bool:
         if a_whole_file.root_folder == None:
@@ -536,10 +538,11 @@ def local_background_download_process():
 
         real_hash = disk.get_hash_of_a_file_by_using_sha1(target_path)
         if (real_hash == target_hash):
-            print("Hash code matchs, download successfully")
+            print("Hash code matchs")
             return True
         else:
-            print("Delete temprary file, download it again")
+            print("Hash code match failed, delele it anddownload it again")
+            print()
             return False
 
     def do_the_downloading_based_on_local_database_data():
@@ -636,7 +639,7 @@ def local_background_download_process():
                                 while True:
                                     a_file_segment.file_segment_bytes_in_base64 = download_a_file_segment(a_file_segment)
                                     if a_file_segment.file_segment_bytes_in_base64 != None:
-                                        print(a_file_segment)
+                                        print("Segment downloaded.")
                                         break
                                 file_segment_list.append(a_file_segment)
 
