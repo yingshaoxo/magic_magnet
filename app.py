@@ -437,9 +437,10 @@ def local_background_seeding_process():
                                     target_resource = target_resource_list[0]
                                     target_project_path = disk.join_paths(target_resource.root_folder, target_resource.name)
                                     target_file_path = disk.join_paths(target_resource.root_folder, need_to_upload_notification.file_path_relative_to_root_folder)
+                                    target_file_path = terminal.fix_path(target_file_path, startswith=True)
                                     #print(target_resource.root_folder, need_to_upload_notification.file_path_relative_to_root_folder)
                                     if not disk.exists(target_project_path):
-                                        database_excutor_for_local_service.A_Resource.delete(item_filter=target_resource)
+                                        database_excutor_for_local_service.A_Resource.delete(item_filter=ytorrent_objects.A_Resource(file_or_folder_hash=target_resource.file_or_folder_hash))
                                         continue
                                     if not disk.exists(target_file_path):
                                         continue
