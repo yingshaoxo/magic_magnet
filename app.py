@@ -498,6 +498,7 @@ def local_background_download_process():
         )
 
     def mark_one_file_download_success(a_whole_file: ytorrent_objects.A_Whole_File, a_resource: ytorrent_objects.A_Resource):
+        #print(len(a_resource.file_hash_list), len(set(a_resource.file_hash_list)))
         target_index = a_resource.file_hash_list.index(a_whole_file.file_hash)
         a_resource.file_download_status_list[target_index] = True
         database_excutor_for_local_service.A_Resource.update(
@@ -518,20 +519,27 @@ def local_background_download_process():
         target_folder = disk.get_directory_path(target_path)
         disk.create_a_folder(target_folder)
         print(target_path)
+
+        target_hash = a_whole_file.file_hash[len(a_whole_file.file_name):]
+
+        if disk.exists(target_path):
+            real_hash = disk.get_hash_of_a_file_by_using_sha1(target_path)
+            if real_hash == target_hash:
+                return True
+            else:
+                disk.delete_a_file(target_path)
+
         for segment in a_whole_file.file_segment_list:
             part_data = disk.base64_to_bytes(segment.file_segment_bytes_in_base64)
-            if disk.exists(target_path):
-                with open(target_path, "ab") as f:
-                    f.write(part_data)
-            else:
-                with open(target_path, "wb") as f:
-                    f.write(part_data)
+            with open(target_path, "ab") as f:
+                f.write(part_data)
+
         real_hash = disk.get_hash_of_a_file_by_using_sha1(target_path)
-        target_hash = a_whole_file.file_hash
         if (real_hash == target_hash):
             print("Hash code matchs, download successfully")
             return True
         else:
+            print("Delete temprary file, download it again")
             return False
 
     def do_the_downloading_based_on_local_database_data():
@@ -543,7 +551,6 @@ def local_background_download_process():
             return
         else:
             for a_resource in a_search_result_list:
-                print(a_resource)
                 # you may check if all files get downloaded successfully or not, if success, set download_complete flag to A_Resource
                 for client in client_list:
                     if a_resource.file_download_status_list == None:
@@ -567,6 +574,7 @@ def local_background_download_process():
                                 )
                                 continue
                     else:
+                        print(a_resource)
                         if all(a_resource.file_download_status_list):
                             for a_folder in a_resource.folder_path_list_relative_to_root_folder:
                                 disk.create_a_folder(disk.join_paths(a_resource.root_folder, a_folder))
@@ -588,6 +596,28 @@ def local_background_download_process():
                                 file_segment_list=[]
                             )
 
+                            # if there already has a file, continue if it is right one, delete it if it is wrong one
+                            if a_whole_file.root_folder == None:
+                                download_folder = YTORRENT_CONFIG.download_folder_path
+                            else:
+                                download_folder = a_whole_file.root_folder
+                            target_path = disk.join_paths(download_folder, a_whole_file.file_name)
+                            target_path = terminal.fix_path(target_path, startswith=True)
+                            target_path = disk.get_absolute_path(target_path)
+                            target_folder = disk.get_directory_path(target_path)
+                            disk.create_a_folder(target_folder)
+
+                            target_hash = a_whole_file.file_hash[len(a_whole_file.file_name):]
+
+                            if disk.exists(target_path):
+                                real_hash = disk.get_hash_of_a_file_by_using_sha1(target_path)
+                                if real_hash == target_hash:
+                                    mark_one_file_download_success(a_whole_file, a_resource)
+                                    continue
+                                else:
+                                    disk.delete_a_file(target_path)
+
+                            # if there does not have a file
                             max_acceptable_file_segment_size_in_bytes = YTORRENT_CONFIG.max_acceptable_file_segment_size_in_mb * 1024 * 1024
                             segments_number = file_size // max_acceptable_file_segment_size_in_bytes
                             if (file_size % max_acceptable_file_segment_size_in_bytes) != 0:
@@ -608,7 +638,6 @@ def local_background_download_process():
                                     if a_file_segment.file_segment_bytes_in_base64 != None:
                                         print(a_file_segment)
                                         break
-                                    sleep(3)
                                 file_segment_list.append(a_file_segment)
 
                             a_whole_file.file_segment_list = file_segment_list
@@ -734,7 +763,7 @@ class Ytorrent_Client():
         if is_single_file == True:
             part_of_file_or_folder_path = get_child_relative_path(root_folder, file_or_folder_path)
             file_path_list_relative_to_root_folder.append(part_of_file_or_folder_path)
-            file_path_content_hash_list.append(disk.get_hash_of_a_file_by_using_sha1(file_or_folder_path))
+            file_path_content_hash_list.append(part_of_file_or_folder_path + disk.get_hash_of_a_file_by_using_sha1(file_or_folder_path))
             file_size_in_bytes_list.append(disk.get_file_size(file_or_folder_path))
         else:
             files = disk.get_files(file_or_folder_path)
@@ -744,7 +773,8 @@ class Ytorrent_Client():
                     folder_path_list_relative_to_root_folder.append(part_of_file_or_folder_path)
                 else:
                     file_path_list_relative_to_root_folder.append(part_of_file_or_folder_path)
-                    file_path_content_hash_list.append(disk.get_hash_of_a_file_by_using_sha1(file))
+                    file_path_content_hash_list.append(part_of_file_or_folder_path + disk.get_hash_of_a_file_by_using_sha1(file))
+                    # since there may have duplicate same files inside of a folder, that's why I add 'relative path' into hash code to make it unique
                     file_size_in_bytes_list.append(disk.get_file_size(file))
 
         a_resource = ytorrent_objects.A_Resource(
