@@ -124,6 +124,8 @@ if _tracker_ip_or_url_list is not None:
 YTORRENT_CONFIG.download_folder_path = terminal.fix_path(YTORRENT_CONFIG.download_folder_path, startswith=True)
 disk.create_a_folder(disk.get_directory_path(YTORRENT_CONFIG.download_folder_path))
 
+YTORRENT_CONFIG.tracker_ip_or_url_list = [one for one in YTORRENT_CONFIG.tracker_ip_or_url_list if one.strip()!=""]
+
 
 def refactor_database():
     database_excutor_for_remote_service.A_Resource.database_of_yingshaoxo.refactor_database()
