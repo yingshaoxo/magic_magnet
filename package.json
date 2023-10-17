@@ -7,6 +7,6 @@
         "run": "python3 main.py"
     },
     "dependencies": [
-        "auto_everything"
+        //"auto_everything"
     ]
 }

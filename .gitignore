@@ -1,5 +1,12 @@
+*.dist/
+.yppm_dist/
+*.spec
+.github/
 database_data/
 *.build/
+package-lock.json
+
+.stfolder/
 
 .venv/
 .vscode/

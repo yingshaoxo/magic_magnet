@@ -1,0 +1,30 @@
+FROM alpine:3.18
+
+RUN apk add musl-dev gcc
+RUN apk add git
+RUN apk add python3 py3-pip python3-dev
+RUN apk add bash
+RUN apk add patchelf
+
+RUN python3 --version
+RUN python3 -m pip install git+https://gitlab.com/yingshaoxo/yppm.git
+RUN python3 -m pip install git+https://gitlab.com/yingshaoxo/auto_everything.git
+
+COPY ./package.json /temp/package.json
+WORKDIR /temp
+RUN python3 -m yppm install nuitka
+RUN cp -fr /temp/.venv /
+
+COPY . /temp
+WORKDIR /temp
+RUN cp -fr /.venv /temp/ 
+
+RUN python3 -m yppm build_with_nuitka
+
+RUN rm -fr /build/magic_magnet
+RUN mkdir -p /build/magic_magnet/
+RUN cp -fr app.dist/* /build/magic_magnet/
+
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+

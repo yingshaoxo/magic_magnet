@@ -57,6 +57,15 @@ https://ytorrent.yy.com
 ...
 ```
 
+### How to build a binary file from docker
+```
+sudo docker-compose -f docker-compose.magic_magnet_python.yaml up --build
+
+cd data/magic_magnet
+sudo chown -R $(whoami):$(whoami) .
+sudo chmod g+rw .
+```
+
 ### For the electron app
 It should spawn the about python software and execute it first with "enable user_interface", then launch the user interface written by vue3(vite).
 
