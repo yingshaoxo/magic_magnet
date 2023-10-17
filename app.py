@@ -173,9 +173,16 @@ class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rp
         default_response = ytorrent_objects.Search_Response()
 
         try:
-            resource_search_result_list = database_excutor_for_remote_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource(
-                name=item.search_input
-            ))
+            def a_handler(raw_json_text: str) -> dict[str, Any] | None:
+                search_text = item.search_input
+                json_object = json.loads(raw_json_text)
+                if search_text.lower() in json_object["name"].lower():
+                    return json_object
+                return None
+            resource_search_result_list = database_excutor_for_remote_service.A_Resource.raw_search(one_row_json_string_handler=a_handler, page_number=item.page_number, page_size=item.page_size)
+            #resource_search_result_list = database_excutor_for_remote_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource(
+            #    name=item.search_input
+            #))
             default_response.resource_list = resource_search_result_list
         except Exception as e:
             print(f"Error: {e}")
@@ -915,3 +922,4 @@ class Command_Line_Interface():
 if __name__ == '__main__':
     refactor_database()
     python.fire(Command_Line_Interface)
+
