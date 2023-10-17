@@ -66,12 +66,30 @@ database_excutor_for_local_service = Yingshaoxo_Database_Excutor_ytorrent_server
 YTORRENT_CONFIG = ytorrent_objects.Ytorrent_Config(
     default_remote_service_port=1111,
     default_local_service_port=1212,
-    file_segments_memory_pool_size_in_mb=200,
-    max_acceptable_file_segment_size_in_mb=1,
+    file_segments_memory_pool_size_in_mb=500,
+    max_acceptable_file_segment_size_in_mb=2,
     polling_waiting_time_in_seconds=60,
     tracker_ip_or_url_list=[],
-    download_folder_path="~/Downloads/Ytorrent_Download"
+    download_folder_path=terminal.fix_path("~/Downloads/Ytorrent_Download", startswith=True)
 )
+json_configuration_folder_path = terminal.fix_path("~/.ytorrent", startswith=True)
+disk.create_a_folder(json_configuration_folder_path)
+json_configuration_file_path = disk.join_paths(json_configuration_folder_path, "configuration.json")
+tracker_urls_file_path = disk.join_paths(json_configuration_folder_path, "tracker_urls.txt")
+if (disk.exists(json_configuration_file_path)):
+    json_configuration_object = json.loads(io_.read(json_configuration_file_path))
+    tracker_ip_or_url_list_ = YTORRENT_CONFIG.tracker_ip_or_url_list
+    temp_dict = YTORRENT_CONFIG.to_dict()
+    temp_dict.update(json_configuration_object)
+    if tracker_ip_or_url_list_ != None:
+        temp_dict["tracker_ip_or_url_list"] = tracker_ip_or_url_list_ + temp_dict["tracker_ip_or_url_list"]
+    YTORRENT_CONFIG = YTORRENT_CONFIG.from_dict(temp_dict)
+if (disk.exists(tracker_urls_file_path)):
+    tracker_text = io_.read(tracker_urls_file_path).strip()
+    new_tracker_ip_list = tracker_text.split("\n")
+    new_tracker_ip_list = [one.strip() for one in new_tracker_ip_list]
+    if YTORRENT_CONFIG.tracker_ip_or_url_list != None:
+        YTORRENT_CONFIG.tracker_ip_or_url_list = new_tracker_ip_list + YTORRENT_CONFIG.tracker_ip_or_url_list
 
 _default_remote_service_port = os.getenv("default_remote_service_port")
 if _default_remote_service_port is not None:
@@ -95,10 +113,16 @@ if _polling_waiting_time_in_seconds is not None:
 
 _tracker_ip_or_url_list = os.getenv("tracker_ip_or_url_list")
 if _tracker_ip_or_url_list is not None:
+    if YTORRENT_CONFIG.tracker_ip_or_url_list == None:
+        YTORRENT_CONFIG.tracker_ip_or_url_list = []
     if "," in _tracker_ip_or_url_list:
-        YTORRENT_CONFIG.tracker_ip_or_url_list = [one.strip() for one in _tracker_ip_or_url_list.split(",")]
+        YTORRENT_CONFIG.tracker_ip_or_url_list = [one.strip() for one in _tracker_ip_or_url_list.split(",")] + YTORRENT_CONFIG.tracker_ip_or_url_list
     else:
-        YTORRENT_CONFIG.tracker_ip_or_url_list = [_tracker_ip_or_url_list.strip()]
+        YTORRENT_CONFIG.tracker_ip_or_url_list = [_tracker_ip_or_url_list.strip()] + YTORRENT_CONFIG.tracker_ip_or_url_list
+
+
+YTORRENT_CONFIG.download_folder_path = terminal.fix_path(YTORRENT_CONFIG.download_folder_path, startswith=True)
+disk.create_a_folder(disk.get_directory_path(YTORRENT_CONFIG.download_folder_path))
 
 
 def refactor_database():

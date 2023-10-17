@@ -36,6 +36,27 @@ When you run `magic_magnet search/seed keywords/path` again, it will check if th
 * magic_magnet download <magnet_magic_link>
 * magic_magnet stop
 
+### Configurations
+~/.ytorrent/configuration.json
+```json
+{
+    "default_remote_service_port": 1111,
+    "default_local_service_port": 1212,
+    "file_segments_memory_pool_size_in_mb": 500,
+    "max_acceptable_file_segment_size_in_mb": 2,
+    "polling_waiting_time_in_seconds": 60,
+    "tracker_ip_or_url_list": [],
+    "download_folder_path": "~/Downloads/Ytorrent_Download"
+}
+```
+
+~/.ytorrent/tracker_urls.txt
+```
+https://ytorrent.xx.com
+https://ytorrent.yy.com
+...
+```
+
 ### For the electron app
 It should spawn the about python software and execute it first with "enable user_interface", then launch the user interface written by vue3(vite).
 

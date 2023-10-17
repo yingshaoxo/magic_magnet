@@ -21,6 +21,8 @@ service ytorrent_service {
 }
 
 message Ytorrent_Config {
+    // default path for this configuration.json is in ~/.ytorrent/configuration.json
+    // and for tracker_ip_or_url_list, you should have another file at ~/.ytorrent/tracker_urls.txt
     int64 default_remote_service_port = 1; // dedault 1111
     int64 default_local_service_port = 2; // dedault 1212
     int64 file_segments_memory_pool_size_in_mb = 3; // default 1000 mb
