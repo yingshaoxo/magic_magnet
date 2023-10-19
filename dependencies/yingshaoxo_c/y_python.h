@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
+#include <unistd.h>
 
 /*
 Say hello to yingshaoxo.
@@ -116,7 +117,7 @@ The C library function `char *strstr(const char *haystack, const char *needle)` 
 It will return null pointer if the sub_sequence is not present in haystack.
 The terminating '\0' characters are not compared.
 */
-char *_ypython_find_the_first_sub_string_in_a_string(const char *a_string, const char *sub_string) {
+const char *_ypython_find_the_first_sub_string_in_a_string(const char *a_string, const char *sub_string) {
     return strstr(a_string, sub_string);
 }
 
@@ -126,6 +127,36 @@ char *_ypython_find_the_first_sub_string_in_a_string(const char *a_string, const
 Let's use those built-in c functions to do some useful things
 ##################################################
 */
+
+bool _ypython_string_is_string_equal(const char* x, const char* y)
+{
+    int flag = 0;
+ 
+    // Iterate a loop till the end
+    // of both the strings
+    while (*x != '\0' || *y != '\0') {
+        if (*x == *y) {
+            x++;
+            y++;
+        }
+ 
+        // If two characters are not same
+        // print the difference and exit
+        else if ((*x == '\0' && *y != '\0')
+                 || (*x != '\0' && *y == '\0')
+                 || *x != *y) {
+            flag = 1;
+            break;
+        }
+    }
+ 
+    // If two strings are exactly same
+    if (flag == 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
 bool _ypython_string_is_sub_string(const char *a_string, const char *sub_string) {
     if (_ypython_find_the_first_sub_string_in_a_string(a_string, sub_string) != NULL) {
@@ -203,7 +234,7 @@ char *_ypython_get_infinate_length_text_line(FILE *f)
     do
     {
         size += BUFSIZ;                                              /* BUFSIZ is defined as "the optimal read size for this platform" */
-        buf = _ypython_resize_memory_block_for_a_pointer(buf, size); /* realloc(NULL,n) is the same as malloc(n) */
+        buf = (char *) _ypython_resize_memory_block_for_a_pointer(buf, size); /* realloc(NULL,n) is the same as malloc(n) */
         /* Actually do the read. Note that fgets puts a terminal '\0' on the
            end of the string, so we make sure we overwrite this */
         if (buf == NULL)
@@ -226,7 +257,7 @@ char *_ypython_get_infinate_length_text(FILE *f)
     do
     {
         size += BUFSIZ;                                              /* BUFSIZ is defined as "the optimal read size for this platform" */
-        buf = _ypython_resize_memory_block_for_a_pointer(buf, size); /* realloc(NULL,n) is the same as malloc(n) */
+        buf = (char *)_ypython_resize_memory_block_for_a_pointer(buf, size); /* realloc(NULL,n) is the same as malloc(n) */
         /* Actually do the read. Note that fgets puts a terminal '\0' on the
            end of the string, so we make sure we overwrite this */
         if (buf == NULL)
@@ -303,10 +334,11 @@ struct Type_Ypython_None {
 
 Type_Ypython_None *Ypython_None() {
     Type_Ypython_None *new_none_value;
-    new_none_value = malloc(sizeof(Type_Ypython_None));
-    new_none_value -> type = "none";
+    new_none_value = (Type_Ypython_None *)malloc(sizeof(Type_Ypython_None));
 
     new_none_value->is_none = true;
+    new_none_value -> type = (char *)"none";
+
     new_none_value->value = 0;
 
     return new_none_value;
@@ -327,16 +359,16 @@ struct Type_Ypython_String {
 Type_Ypython_String *Ypython_String(char *value);
 
 Type_Ypython_String *Type_Ypython_String_add(Type_Ypython_String *self, Type_Ypython_String *another_string) {
-    Type_Ypython_String *new_string_value = Ypython_String("");
+    Type_Ypython_String *new_string_value = Ypython_String((char *)"");
 
     if (self->is_none || another_string->is_none) {
-        new_string_value->value = "";
+        new_string_value->value = (char *)"";
         new_string_value->is_none = true;
     } else {
         new_string_value->is_none = false;
 
         size_t total_length = _ypython_get_string_length(self->value) + _ypython_get_string_length(another_string->value);
-        char *new_chars_value = malloc(total_length);
+        char *new_chars_value = (char *)malloc(total_length);
         snprintf(new_chars_value, total_length+1, "%s%s", self->value, another_string->value);
 
         new_string_value->value = new_chars_value;
@@ -355,20 +387,28 @@ bool Type_Ypython_String_is_equal(Type_Ypython_String *self, Type_Ypython_String
     else if ((self->is_none) && (!(another_string->is_none))) {
         return false;
     } else {
+        if (_ypython_string_is_string_equal(self->value, another_string->value)) {
+            return true;
+        } else {
+            return false;
+        }   
+        /*
         if (_ypython_string_compare(self->value, another_string->value) == 0) {
             return true;
         } else {
             return false;
         }
+        */
     }
 }
 
 Type_Ypython_String *Ypython_String(char *value) {
     Type_Ypython_String *new_string_value;
-    new_string_value = malloc(sizeof(Type_Ypython_String));
-    new_string_value->type = "string";
+    new_string_value = (Type_Ypython_String *)malloc(sizeof(Type_Ypython_String));
 
     new_string_value->is_none = false;
+    new_string_value->type = (char *)"string";
+
     new_string_value->value = value;
 
     new_string_value->function_add = &Type_Ypython_String_add;
@@ -389,10 +429,11 @@ struct Type_Ypython_Bool {
 
 Type_Ypython_Bool *Ypython_Bool(bool value) {
     Type_Ypython_Bool *new_bool_value;
-    new_bool_value = malloc(sizeof(Type_Ypython_Bool));
-    new_bool_value -> type = "bool";
+    new_bool_value = (Type_Ypython_Bool *)malloc(sizeof(Type_Ypython_Bool));
 
     new_bool_value->is_none = false;
+    new_bool_value -> type = (char *)"bool";
+
     new_bool_value->value = value;
 
     return new_bool_value;
@@ -442,10 +483,11 @@ Type_Ypython_Int *Type_Ypython_Int_multiply(Type_Ypython_Int *self, Type_Ypython
 
 Type_Ypython_Int *Ypython_Int(long long value) {
     Type_Ypython_Int *new_int_value;
-    new_int_value = malloc(sizeof(Type_Ypython_Int));
-    new_int_value->type = "int";
+    new_int_value = (Type_Ypython_Int *)malloc(sizeof(Type_Ypython_Int));
 
     new_int_value->is_none = false;
+    new_int_value->type = (char *)"int";
+
     new_int_value->value = value;
 
     new_int_value->function_add = &Type_Ypython_Int_add;
@@ -498,10 +540,11 @@ Type_Ypython_Float *Type_Ypython_Float_multiply(Type_Ypython_Float *self, Type_Y
 
 Type_Ypython_Float *Ypython_Float(long double value) {
     Type_Ypython_Float *new_float_value;
-    new_float_value = malloc(sizeof(Type_Ypython_Float));
-    new_float_value->type = "float";
+    new_float_value = (Type_Ypython_Float *)malloc(sizeof(Type_Ypython_Float));
 
     new_float_value->is_none = false;
+    new_float_value->type = (char *)"float";
+
     new_float_value->value = value;
 
     new_float_value->function_add = &Type_Ypython_Float_add;
@@ -533,9 +576,10 @@ struct Type_Ypython_General {
 
 Type_Ypython_General *Ypython_General() {
     Type_Ypython_General *new_value;
-    new_value = malloc(sizeof(Type_Ypython_General));
+    new_value = (Type_Ypython_General *)malloc(sizeof(Type_Ypython_General));
+
     new_value->is_none = false;
-    new_value -> type = "general";
+    new_value -> type = (char *)"general";
 
     new_value->bool_ = NULL;
     new_value->float_ = NULL;
@@ -550,6 +594,10 @@ Type_Ypython_General *Ypython_General() {
 /*
 List type
 //https://dev.to/bekhruzniyazov/creating-a-python-like-list-in-c-4ebg
+
+A good list data type has to have:
+1. infinity list size increasing in real time
+2. automatically garbage collection
 */
 typedef struct Type_Ypython_List Type_Ypython_List;
 struct Type_Ypython_List {
@@ -562,39 +610,30 @@ struct Type_Ypython_List {
     Type_Ypython_List *(*Type_Ypython_List_append)(Type_Ypython_List *self, Type_Ypython_General *an_element);
 };
 
+Type_Ypython_List *Ypython_List();
 Type_Ypython_List *Type_Ypython_List_append(Type_Ypython_List *self, Type_Ypython_General *an_element) {
-    return NULL;
-    // ypython_print("no");
-    // if (an_element->string_) {
-    //     ypython_print(an_element->string_->type);
-    // }
-    // ypython_print("no2");
+    Type_Ypython_List *new_list_value = Ypython_List();
 
-    // Type_Ypython_List *new_list_value;
-    // return new_list_value;
+    if (self->is_none) {
+        new_list_value->is_none = true;
+        return new_list_value;
+    } else {
+        new_list_value->length = self->length + 1;
+        new_list_value->value = (Type_Ypython_General *)malloc(sizeof(Type_Ypython_General) * new_list_value->length);
+    }
 
-//     new_list_value->is_none = false;
-//     new_list_value -> type = "list";
-
-//     new_list_value->length = 1;
-//     new_list_value->value = malloc(sizeof(Type_Ypython_List) * new_list_value->length);
-
-//     if (self->is_none) {
-//         new_list_value->is_none = true;
-//         return new_list_value;
-//     } else {
-//     }
-
-//     return new_list_value;
+    return new_list_value;
 }
 
 Type_Ypython_List *Ypython_List() {
     Type_Ypython_List *new_list_value;
+    new_list_value = (Type_Ypython_List *)malloc(sizeof(Type_Ypython_List));
+
     new_list_value->is_none = false;
-    new_list_value -> type = "list";
+    new_list_value->type = (char *)"list";
 
     new_list_value->length = 1;
-    new_list_value->value = malloc(sizeof(Type_Ypython_List) * new_list_value->length);
+    new_list_value->value = (Type_Ypython_General *)malloc(sizeof(Type_Ypython_General) * new_list_value->length);
 
     new_list_value->Type_Ypython_List_append = &Type_Ypython_List_append;
 
@@ -613,9 +652,10 @@ struct Type_Ypython_Dict {
 
 Type_Ypython_Dict *Ypython_Dict() {
     Type_Ypython_Dict *new_value;
-    new_value = malloc(sizeof(Type_Ypython_Dict));
+    new_value = (Type_Ypython_Dict *)malloc(sizeof(Type_Ypython_Dict));
+
     new_value->is_none = false;
-    new_value -> type = "dict";
+    new_value -> type = (char *)"dict";
 
     return new_value;
 }

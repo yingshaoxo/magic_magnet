@@ -1,8 +1,25 @@
 #include "./y_python.h"
 
 
+int test_number = 0;
+
+
+void print_seperator(const char * test_name) {
+    test_number += 1;
+    ypython_print("\n---------------\n");
+    if (_ypython_string_is_string_equal(test_name, "")) {
+        _ypython_print_formated_string("Test %d", test_number);
+    } else {
+        _ypython_print_formated_string("Test %d: %s", test_number, test_name);
+    }
+    ypython_print("\n\n---------------\n");
+}
+
+
 int main()
 {
+    print_seperator("");
+
     const char *result = ypython_run_command("echo 'hi'");
     const char *new_result = ypython_string_strip((char *)result);
     if (_ypython_string_compare(new_result, "hi") != 0)
@@ -12,14 +29,20 @@ int main()
     }
 
     ///////////////////////////////////////////////////////
+    
+    print_seperator("");
 
     ypython_run("uname -v");
 
     //////////////////////////////////////////////////////
 
+    print_seperator("");
+
     _ypython_print_formated_string("Hi, '%s'.\n", "yingshaoxo");
 
     //////////////////////////////////////////////////////
+
+    print_seperator("");
 
     Type_Ypython_Float *a_float = Ypython_Float(3.2);
     _ypython_print_formated_string("%.3Lf\n", a_float->value);
@@ -35,6 +58,8 @@ int main()
 
     //////////////////////////////////////////////////////
 
+    print_seperator("");
+
     Type_Ypython_Int *a_int = Ypython_Int(3);
     _ypython_print_formated_string("%lld\n", a_int->value);
 
@@ -49,6 +74,8 @@ int main()
 
     //////////////////////////////////////////////////////
 
+    print_seperator("");
+
     Type_Ypython_String *a_string = Ypython_String("yingshaoxo");
     ypython_print(a_string->value);
 
@@ -57,10 +84,14 @@ int main()
 
     Type_Ypython_String *target_string = Ypython_String("yingshaoxo is super nice.");
     if (!(target_string->function_is_equal(target_string, final_string))) {
+        //ypython_print(target_string->value);
+        //ypython_print(final_string->value);
         _ypython_print_formated_string("'%s' should equal to '%s'\n", final_string->value, target_string->value);
     }
 
     //////////////////////////////////////////////////////
+
+    print_seperator("");
 
     if (!_ypython_string_is_sub_string("abc", "ab")) {
         ypython_print("'ab' should be a substring of 'abc'");
@@ -76,6 +107,8 @@ int main()
 
     //////////////////////////////////////////////////////
 
+    print_seperator("");
+
     a_string = Ypython_String("nice");
     if (!(a_string->function_is_equal(Ypython_String(a_string->type), Ypython_String("string")))) {
         ypython_print("type should be 'string'");
@@ -83,12 +116,36 @@ int main()
 
     //////////////////////////////////////////////////////
 
+    print_seperator("General Type");
+
     Type_Ypython_String *a_string_2 = Ypython_String("nice");
+
+    Type_Ypython_General *general_variable = Ypython_General();
+    general_variable->string_ = a_string_2;
+    ypython_print(general_variable->string_->value);
+
+    if (general_variable->string_->function_is_equal(general_variable->string_, Ypython_String("nice")) == false) {
+        ypython_print("Error in general type");
+    }
+    
+    //////////////////////////////////////////////////////
+    
+    print_seperator("List Test");
+
     Type_Ypython_List *a_list = Ypython_List();
-    Type_Ypython_General *a_general_variable = Ypython_General();
-    a_general_variable->string_ = a_string_2;
-    ypython_print(a_general_variable->string_->value);
-    ypython_print("test will fail, because I made some bug in here. and I don't know how to fix it.")
+
+    Type_Ypython_General *general_variable_2 = Ypython_General();
+    Type_Ypython_String *a_string_3 = Ypython_String("element in list");
+    general_variable->string_ = a_string_3;
+
+    a_list->value[0] = *general_variable_2;
+
+    ypython_print("test will fail, because I made some bug in here. and I don't know how to fix it.");
+    ypython_print(a_list->value[0].string_);
+
+    //a_general_variable->string_ = a_string_2;
+    //ypython_print(a_general_variable->string_->value);
+
     // if (!(a_general_variable->string_->function_is_equal(Ypython_String(a_general_variable->string_->type), Ypython_String("string")))) {
     //     ypython_print("type should be 'string'");
     // }
