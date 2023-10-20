@@ -126,7 +126,11 @@ def run(service_instance: Service_ytorrent_server_and_client_protocol, port: str
                     with open(real_file_path, mode="rb") as f:
                         the_data = f.read()
                 else:
-                    return b"Resource not found\n\n(This web service is using YRPC (Yingshaoxo Remote Procedure Call))"
+                    #return b"Resource not found\n\n(This web service is using YRPC (Yingshaoxo Remote Procedure Call))"
+                    sub_url = 'index.html'
+                    real_file_path = f"{os.path.join(html_folder_path, sub_url)}"
+                    with open(real_file_path, mode="rb") as f:
+                        the_data = f.read()
                 return the_data
 
             print(f"The website is running at: http://127.0.0.1:{port}/")
@@ -170,8 +174,15 @@ def run(service_instance: Service_ytorrent_server_and_client_protocol, port: str
             return json.dumps((service_instance.version(headers, correct_item)).to_dict())
 
         return f"No API url matchs '{request_url}'"
-    
+
     class WebRequestHandler(BaseHTTPRequestHandler):
+        def do_OPTIONS(self):
+            self.send_response(200, "ok")
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', '*')
+            self.send_header("Access-Control-Allow-Headers", "*")
+            self.end_headers()
+
         def do_GET(self):
             sub_url = self.path
             headers = _get_headers_dict_from_string(self.headers.as_string())
@@ -184,6 +195,8 @@ def run(service_instance: Service_ytorrent_server_and_client_protocol, port: str
                 self.send_header("Content-Type", "text/html")
             elif sub_url.endswith(".css"):
                 self.send_header("Content-Type", "text/css")
+            elif sub_url.endswith(".js"):
+                self.send_header("Content-Type", "text/javascript")
 
             response = handle_get_url(sub_url, headers)
 

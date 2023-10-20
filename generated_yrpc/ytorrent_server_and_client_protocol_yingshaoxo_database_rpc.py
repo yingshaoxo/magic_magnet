@@ -49,7 +49,7 @@ def _search_function(self: Any, item_filter: Any, page_number:int|None=None, pag
                 return None
             if search_temp_dict["_search_counting"] > search_temp_dict["_real_end"]:
                 return None
-        
+
         return final_result
 
     return self.database_of_yingshaoxo.search(one_row_dict_handler=one_row_dict_filter)
@@ -80,7 +80,7 @@ def _raw_search_function(self: Any, one_row_json_string_handler: Callable[[str],
                 return None
             if search_temp_dict["_search_counting"] > search_temp_dict["_real_end"]:
                 return None
-        
+
         return result
 
     return list(self.database_of_yingshaoxo.raw_search(one_row_json_string_handler=new_one_row_json_string_handler))
@@ -140,8 +140,8 @@ def _update(self, old_item_filter: Any, new_item: Any):
 
 
 class Yingshaoxo_Database_Ytorrent_Config:
-    def __init__(self, database_base_folder: str) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Ytorrent_Config", database_base_folder=database_base_folder)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Ytorrent_Config", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
 
     def add(self, item: Ytorrent_Config):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -157,14 +157,14 @@ class Yingshaoxo_Database_Ytorrent_Config:
 
     def delete(self, item_filter: Ytorrent_Config):
         return _delete(self=self, item_filter=item_filter)
-    
+
     def update(self, old_item_filter: Ytorrent_Config, new_item: Ytorrent_Config):
         return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
 
 
 class Yingshaoxo_Database_A_Resource:
-    def __init__(self, database_base_folder: str) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="A_Resource", database_base_folder=database_base_folder)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="A_Resource", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
 
     def add(self, item: A_Resource):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -180,14 +180,14 @@ class Yingshaoxo_Database_A_Resource:
 
     def delete(self, item_filter: A_Resource):
         return _delete(self=self, item_filter=item_filter)
-    
+
     def update(self, old_item_filter: A_Resource, new_item: A_Resource):
         return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
 
 
 class Yingshaoxo_Database_Need_To_Upload_Notification:
-    def __init__(self, database_base_folder: str) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Need_To_Upload_Notification", database_base_folder=database_base_folder)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Need_To_Upload_Notification", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
 
     def add(self, item: Need_To_Upload_Notification):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -203,14 +203,14 @@ class Yingshaoxo_Database_Need_To_Upload_Notification:
 
     def delete(self, item_filter: Need_To_Upload_Notification):
         return _delete(self=self, item_filter=item_filter)
-    
+
     def update(self, old_item_filter: Need_To_Upload_Notification, new_item: Need_To_Upload_Notification):
         return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
 
 
 class Yingshaoxo_Database_File_Segment:
-    def __init__(self, database_base_folder: str) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="File_Segment", database_base_folder=database_base_folder)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="File_Segment", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
 
     def add(self, item: File_Segment):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -226,14 +226,14 @@ class Yingshaoxo_Database_File_Segment:
 
     def delete(self, item_filter: File_Segment):
         return _delete(self=self, item_filter=item_filter)
-    
+
     def update(self, old_item_filter: File_Segment, new_item: File_Segment):
         return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
 
 
 class Yingshaoxo_Database_A_Whole_File:
-    def __init__(self, database_base_folder: str) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="A_Whole_File", database_base_folder=database_base_folder)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="A_Whole_File", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
 
     def add(self, item: A_Whole_File):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -249,19 +249,19 @@ class Yingshaoxo_Database_A_Whole_File:
 
     def delete(self, item_filter: A_Whole_File):
         return _delete(self=self, item_filter=item_filter)
-    
+
     def update(self, old_item_filter: A_Whole_File, new_item: A_Whole_File):
         return _update(self=self, old_item_filter=old_item_filter, new_item=new_item)
 
 
 class Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol:
-    def __init__(self, database_base_folder: str):
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False):
         self._database_base_folder = database_base_folder
-        self.Ytorrent_Config = Yingshaoxo_Database_Ytorrent_Config(database_base_folder=self._database_base_folder)
-        self.A_Resource = Yingshaoxo_Database_A_Resource(database_base_folder=self._database_base_folder)
-        self.Need_To_Upload_Notification = Yingshaoxo_Database_Need_To_Upload_Notification(database_base_folder=self._database_base_folder)
-        self.File_Segment = Yingshaoxo_Database_File_Segment(database_base_folder=self._database_base_folder)
-        self.A_Whole_File = Yingshaoxo_Database_A_Whole_File(database_base_folder=self._database_base_folder)
+        self.Ytorrent_Config = Yingshaoxo_Database_Ytorrent_Config(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
+        self.A_Resource = Yingshaoxo_Database_A_Resource(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
+        self.Need_To_Upload_Notification = Yingshaoxo_Database_Need_To_Upload_Notification(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
+        self.File_Segment = Yingshaoxo_Database_File_Segment(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
+        self.A_Whole_File = Yingshaoxo_Database_A_Whole_File(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
 
 
 if __name__ == "__main__":

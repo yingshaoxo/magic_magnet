@@ -59,8 +59,8 @@ print()
 disk.create_a_folder(the_database_path)
 remote_database_path = disk.join_paths(the_database_path, "remote_service")
 local_database_path = disk.join_paths(the_database_path, "local_service")
-database_excutor_for_remote_service = Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol(database_base_folder=remote_database_path)
-database_excutor_for_local_service = Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol(database_base_folder=local_database_path)
+database_excutor_for_remote_service = Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol(database_base_folder=remote_database_path, use_sqlite=False)
+database_excutor_for_local_service = Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol(database_base_folder=local_database_path, use_sqlite=False)
 
 
 YTORRENT_CONFIG = ytorrent_objects.Ytorrent_Config(
@@ -693,12 +693,49 @@ def local_background_download_process():
         sleep(3)
 
 
+def remote_background_delete_file_segments_process():
+    # this should be a single while loop, which does everything that needs to work for every x seconds
+    project_root_folder = disk.get_directory_path(os.path.realpath(os.path.abspath(__file__)))
+
+    def do_the_deletion_if_it_reachs_limitation():
+        file_segment_list = database_excutor_for_remote_service.File_Segment.search(item_filter=
+            ytorrent_objects.File_Segment()
+        )
+        pool_size_in_mb = 0
+        for one_file in file_segment_list:
+            if one_file.file_segment_size_in_bytes != None:
+                one_file_size = int(one_file.file_segment_size_in_bytes / 1024 / 1024)
+                pool_size_in_mb += one_file_size
+        if pool_size_in_mb >= YTORRENT_CONFIG.file_segments_memory_pool_size_in_mb:
+            the_oldest_timestamp = float("inf")
+            the_one = None
+            for one_file in file_segment_list:
+                if one_file._current_time_in_timestamp != None:
+                    if one_file._current_time_in_timestamp < the_oldest_timestamp:
+                        the_oldest_timestamp = one_file._current_time_in_timestamp
+                        the_one = one_file
+            if the_one != None:
+                database_excutor_for_remote_service.File_Segment.delete(item_filter=
+                    ytorrent_objects.File_Segment(
+                        _current_time_in_timestamp=the_one._current_time_in_timestamp
+                    )
+                )
+
+    while True:
+        try:
+            do_the_deletion_if_it_reachs_limitation()
+        except Exception as e:
+            print(e)
+        sleep(3)
+
+
 def start_all_service():
     process_list = [
         multiprocessing.Process(target=run_remote_yrpc_service, args=("1111",)),
         multiprocessing.Process(target=run_local_yrpc_service, args=("1212",)),
         multiprocessing.Process(target=local_background_seeding_process, args=()),
         multiprocessing.Process(target=local_background_download_process, args=()),
+        multiprocessing.Process(target=remote_background_delete_file_segments_process, args=()),
     ]
 
     def kill_all_process():
