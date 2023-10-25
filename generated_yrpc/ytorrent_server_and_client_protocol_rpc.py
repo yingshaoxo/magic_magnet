@@ -3,13 +3,10 @@ from .ytorrent_server_and_client_protocol_objects import *
 
 from fastapi import APIRouter, FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from starlette.responses import FileResponse 
+from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
-
-
-router = APIRouter()
 
 
 class Service_ytorrent_server_and_client_protocol:
@@ -98,7 +95,7 @@ class Service_ytorrent_server_and_client_protocol:
         return default_response
 
 
-def init(service_instance: Any):
+def init(service_instance: Any, router: Any):
     @router.post("/seed/", tags=["ytorrent_server_and_client_protocol"])
     async def seed(request: Request, item: Seed_Request) -> Seed_Response:
         item = Seed_Request().from_dict(item.to_dict())
@@ -142,8 +139,10 @@ def init(service_instance: Any):
         return (await service_instance.version(headers, item)).to_dict()
 
 
-def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/"):
-    init(service_instance=service_instance)
+def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_under_which_url: str="/", only_return_app: bool = False):
+    router = APIRouter()
+
+    init(service_instance=service_instance, router=router)
 
     app = FastAPI()
     app.add_middleware(
@@ -171,12 +170,15 @@ def run(service_instance: Any, port: str, html_folder_path: str="", serve_html_u
         else:
             print(f"Error: You should give me an absolute html_folder_path than {html_folder_path}")
 
+    if only_return_app == True:
+        return app
+
     print(f"You can see the docs here: http://127.0.0.1:{port}/docs")
     uvicorn.run( #type: ignore
         app=app,
         host="0.0.0.0",
         port=int(port)
-    ) 
+    )
 
 
 if __name__ == "__main__":

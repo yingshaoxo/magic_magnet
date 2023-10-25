@@ -140,8 +140,8 @@ def _update(self, old_item_filter: Any, new_item: Any):
 
 
 class Yingshaoxo_Database_Ytorrent_Config:
-    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Ytorrent_Config", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None, auto_backup: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Ytorrent_Config", database_base_folder=database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
 
     def add(self, item: Ytorrent_Config):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -163,8 +163,8 @@ class Yingshaoxo_Database_Ytorrent_Config:
 
 
 class Yingshaoxo_Database_A_Resource:
-    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="A_Resource", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None, auto_backup: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="A_Resource", database_base_folder=database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
 
     def add(self, item: A_Resource):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -186,8 +186,8 @@ class Yingshaoxo_Database_A_Resource:
 
 
 class Yingshaoxo_Database_Need_To_Upload_Notification:
-    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Need_To_Upload_Notification", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None, auto_backup: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="Need_To_Upload_Notification", database_base_folder=database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
 
     def add(self, item: Need_To_Upload_Notification):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -209,8 +209,8 @@ class Yingshaoxo_Database_Need_To_Upload_Notification:
 
 
 class Yingshaoxo_Database_File_Segment:
-    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="File_Segment", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None, auto_backup: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="File_Segment", database_base_folder=database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
 
     def add(self, item: File_Segment):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -232,8 +232,8 @@ class Yingshaoxo_Database_File_Segment:
 
 
 class Yingshaoxo_Database_A_Whole_File:
-    def __init__(self, database_base_folder: str, use_sqlite: bool = False) -> None:
-        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="A_Whole_File", database_base_folder=database_base_folder, use_sqlite=use_sqlite)
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None, auto_backup: bool = False) -> None:
+        self.database_of_yingshaoxo = Database_Of_Yingshaoxo(database_name="A_Whole_File", database_base_folder=database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
 
     def add(self, item: A_Whole_File):
         return self.database_of_yingshaoxo.add(data=item.to_dict())
@@ -255,13 +255,13 @@ class Yingshaoxo_Database_A_Whole_File:
 
 
 class Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol:
-    def __init__(self, database_base_folder: str, use_sqlite: bool = False):
+    def __init__(self, database_base_folder: str, use_sqlite: bool = False, global_multiprocessing_shared_dict: Any | None = None, auto_backup: bool = False):
         self._database_base_folder = database_base_folder
-        self.Ytorrent_Config = Yingshaoxo_Database_Ytorrent_Config(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
-        self.A_Resource = Yingshaoxo_Database_A_Resource(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
-        self.Need_To_Upload_Notification = Yingshaoxo_Database_Need_To_Upload_Notification(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
-        self.File_Segment = Yingshaoxo_Database_File_Segment(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
-        self.A_Whole_File = Yingshaoxo_Database_A_Whole_File(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite)
+        self.Ytorrent_Config = Yingshaoxo_Database_Ytorrent_Config(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
+        self.A_Resource = Yingshaoxo_Database_A_Resource(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
+        self.Need_To_Upload_Notification = Yingshaoxo_Database_Need_To_Upload_Notification(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
+        self.File_Segment = Yingshaoxo_Database_File_Segment(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
+        self.A_Whole_File = Yingshaoxo_Database_A_Whole_File(database_base_folder=self._database_base_folder, use_sqlite=use_sqlite, global_multiprocessing_shared_dict=global_multiprocessing_shared_dict, auto_backup=auto_backup)
 
 
 if __name__ == "__main__":
