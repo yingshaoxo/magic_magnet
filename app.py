@@ -840,7 +840,10 @@ class Ytorrent_Client():
             file_path_content_hash_list.append(part_of_file_or_folder_path + disk.get_hash_of_a_file_by_using_sha1(file_or_folder_path))
             file_size_in_bytes_list.append(disk.get_file_size(file_or_folder_path))
         else:
-            files = disk.get_files(file_or_folder_path)
+            files = disk.get_folder_and_files_with_gitignore(folder=file_or_folder_path, return_list_than_tree=True)
+            files = [one.path for one in files]
+            files.sort()
+            #files = disk.get_files(file_or_folder_path)
             for file in files:
                 part_of_file_or_folder_path = get_child_relative_path(root_folder, file)
                 if disk.is_directory(file):
@@ -881,6 +884,7 @@ class Ytorrent_Client():
         client_list = get_remote_client_list()
 
         def page_seperation(page_size:int, current_page:int):
+            import urllib.parse
             search_request = ytorrent_objects.Search_Request(
                 search_input = keywords.strip(),
                 page_size = page_size,
@@ -899,9 +903,10 @@ class Ytorrent_Client():
                         name = one.name.replace("|", "")
                         if len(name)>30:
                             name = name[:15] + "..." + name[-15:]
+                        safe_name = urllib.parse.quote_plus(name)
                         file_size = disk.get_file_size(None, "MB", int(one.file_or_folder_size_in_bytes))
                         hash_code = one.file_or_folder_hash
-                        final_result.append((f"{name} ({file_size}MB) | magnet_magic:?xt={hash_code}&tr={client._service_url}", None))
+                        final_result.append((f"{name} ({file_size}MB) | magnet_magic:?xt={hash_code}&dn={safe_name[:10]}&tr={client._service_url}", None))
                     return final_result
             return []
         return page_seperation
