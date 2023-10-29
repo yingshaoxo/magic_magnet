@@ -90,6 +90,7 @@ if (disk.exists(tracker_urls_file_path)):
     tracker_text = io_.read(tracker_urls_file_path).strip()
     new_tracker_ip_list = tracker_text.split("\n")
     new_tracker_ip_list = [one.strip() for one in new_tracker_ip_list]
+    new_tracker_ip_list.reverse()
     if YTORRENT_CONFIG.tracker_ip_or_url_list != None:
         YTORRENT_CONFIG.tracker_ip_or_url_list = new_tracker_ip_list + YTORRENT_CONFIG.tracker_ip_or_url_list
 
