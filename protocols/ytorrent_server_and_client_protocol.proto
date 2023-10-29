@@ -24,6 +24,7 @@ message Ytorrent_Config {
     // default path for this configuration.json is in ~/.ytorrent/configuration.json
     // and for tracker_ip_or_url_list, you should have another file at ~/.ytorrent/tracker_urls.txt
     int64 default_remote_service_port = 1; // dedault 1111
+    string exposed_seeder_tracker_address = 12; //the seeder's tracker address, should be a public address, could be none
     int64 default_local_service_port = 2; // dedault 1212
     int64 file_segments_memory_pool_size_in_mb = 3; // default 1000 mb
     int64 max_acceptable_file_segment_size_in_mb = 4; // default 1 mb
@@ -44,6 +45,7 @@ message A_Resource {
     repeated string file_hash_list = 9;
     repeated bool file_download_status_list = 10;// if download_complete==False, we'll iterate this dict, to download file that download_status == False; if you do the seed, this dict will be true for all values
     bool download_complete = 11;// if you do the seed, the download_complete will be True at the beginning
+    string exposed_seeder_tracker_address = 12; //the seeder's tracker address, should be a public address, could be none
 }
 
 message Need_To_Upload_Notification {

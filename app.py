@@ -67,6 +67,7 @@ database_excutor_for_local_service = Yingshaoxo_Database_Excutor_ytorrent_server
 
 YTORRENT_CONFIG = ytorrent_objects.Ytorrent_Config(
     default_remote_service_port=1111,
+    exposed_seeder_tracker_address=None, # we may need to automatically get the public ip address, so it would be http://0.0.0.0:1111
     default_local_service_port=1212,
     file_segments_memory_pool_size_in_mb=500,
     max_acceptable_file_segment_size_in_mb=2,
@@ -101,6 +102,10 @@ if _default_remote_service_port is not None:
 _default_local_service_port = os.getenv("default_local_service_port")
 if _default_local_service_port is not None:
     YTORRENT_CONFIG.default_local_service_port = int(_default_local_service_port)
+
+_exposed_seeder_tracker_address = os.getenv("exposed_seeder_tracker_address")
+if _exposed_seeder_tracker_address is not None:
+    YTORRENT_CONFIG.exposed_seeder_tracker_address = int(_exposed_seeder_tracker_address)
 
 _file_segments_memory_pool_size_in_mb = os.getenv("file_segments_memory_pool_size_in_mb")
 if _file_segments_memory_pool_size_in_mb is not None:
@@ -428,8 +433,9 @@ def run_local_yrpc_service(port: str):
     ytorrent_server_and_client_protocol_pure_python_rpc.run(service_instance, port=port, html_folder_path=vue_html_file_folder)
 
 
-def get_remote_client_list() -> list[ytorrent_server_and_client_protocol_pure_python_rpc_client.Client_ytorrent_server_and_client_protocol]:
+def get_remote_client_list(addtional_tracker_list: list[str] = []) -> list[ytorrent_server_and_client_protocol_pure_python_rpc_client.Client_ytorrent_server_and_client_protocol]:
     remote_service_address_list = list(set(YTORRENT_CONFIG.tracker_ip_or_url_list))
+    remote_service_address_list = addtional_tracker_list + remote_service_address_list
     client_list = []
     for an_address in remote_service_address_list:
         remote_client = ytorrent_server_and_client_protocol_pure_python_rpc_client.Client_ytorrent_server_and_client_protocol(service_url=an_address)
@@ -519,7 +525,11 @@ def local_background_download_process():
                 segment_number=empty_file_segment.segment_number
             )
         )
-        clients = get_remote_client_list()
+        if YTORRENT_CONFIG.exposed_seeder_tracker_address != None:
+            # get file from original file hoster
+            clients = get_remote_client_list(addtional_tracker_list=[YTORRENT_CONFIG.exposed_seeder_tracker_address])
+        else:
+            clients = get_remote_client_list()
         for client in clients:
             response = client.download(download_request)
             if response.error != None:
@@ -541,7 +551,7 @@ def local_background_download_process():
         a_resource.file_download_status_list[target_index] = True
         database_excutor_for_local_service.A_Resource.update(
             old_item_filter=ytorrent_objects.A_Resource(file_or_folder_hash=a_resource.file_or_folder_hash),
-            new_item=ytorrent_objects.A_Resource(file_download_status_list=a_resource.file_download_status_list)
+            new_item=ytorrent_objects.A_Resource(file_download_status_list=a_resource.file_download_status_list, exposed_seeder_tracker_address=YTORRENT_CONFIG.exposed_seeder_tracker_address)
         )
         print(f"Download complete marked")
         print()
@@ -869,6 +879,7 @@ class Ytorrent_Client():
             file_hash_list=file_path_content_hash_list,
             file_download_status_list=[True for one in file_path_content_hash_list],
             download_complete=True,
+            exposed_seeder_tracker_address=YTORRENT_CONFIG.exposed_seeder_tracker_address,
         )
 
         a_search_result_list = database_excutor_for_local_service.A_Resource.search(item_filter=ytorrent_objects.A_Resource(

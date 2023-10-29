@@ -96,6 +96,7 @@ class YRPC_OBJECT_BASE_CLASS:
 @dataclass()
 class Ytorrent_Config(YRPC_OBJECT_BASE_CLASS):
     default_remote_service_port: int | None = None
+    exposed_seeder_tracker_address: str | None = None
     default_local_service_port: int | None = None
     file_segments_memory_pool_size_in_mb: int | None = None
     max_acceptable_file_segment_size_in_mb: int | None = None
@@ -105,6 +106,7 @@ class Ytorrent_Config(YRPC_OBJECT_BASE_CLASS):
 
     _property_name_to_its_type_dict = {
         "default_remote_service_port": int,
+        "exposed_seeder_tracker_address": str,
         "default_local_service_port": int,
         "file_segments_memory_pool_size_in_mb": int,
         "max_acceptable_file_segment_size_in_mb": int,
@@ -116,6 +118,7 @@ class Ytorrent_Config(YRPC_OBJECT_BASE_CLASS):
     @dataclass()
     class _key_string_dict:
         default_remote_service_port: str = "default_remote_service_port"
+        exposed_seeder_tracker_address: str = "exposed_seeder_tracker_address"
         default_local_service_port: str = "default_local_service_port"
         file_segments_memory_pool_size_in_mb: str = "file_segments_memory_pool_size_in_mb"
         max_acceptable_file_segment_size_in_mb: str = "max_acceptable_file_segment_size_in_mb"
@@ -141,6 +144,7 @@ class A_Resource(YRPC_OBJECT_BASE_CLASS):
     file_hash_list: list[str] | None = None
     file_download_status_list: list[bool] | None = None
     download_complete: bool | None = None
+    exposed_seeder_tracker_address: str | None = None
 
     _property_name_to_its_type_dict = {
         "name": str,
@@ -154,6 +158,7 @@ class A_Resource(YRPC_OBJECT_BASE_CLASS):
         "file_hash_list": str,
         "file_download_status_list": bool,
         "download_complete": bool,
+        "exposed_seeder_tracker_address": str,
     }
 
     @dataclass()
@@ -169,6 +174,7 @@ class A_Resource(YRPC_OBJECT_BASE_CLASS):
         file_hash_list: str = "file_hash_list"
         file_download_status_list: str = "file_download_status_list"
         download_complete: str = "download_complete"
+        exposed_seeder_tracker_address: str = "exposed_seeder_tracker_address"
 
     def from_dict(self, dict: dict[str, Any]):
         new_variable: A_Resource = super().from_dict(dict)

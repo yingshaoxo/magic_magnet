@@ -41,6 +41,7 @@ When you run `magic_magnet search/seed keywords/path` again, it will check if th
 ```json
 {
     "default_remote_service_port": 1111,
+    "seeder_tracker_address": None,
     "default_local_service_port": 1212,
     "file_segments_memory_pool_size_in_mb": 500,
     "max_acceptable_file_segment_size_in_mb": 2,
