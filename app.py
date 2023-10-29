@@ -540,9 +540,11 @@ def local_background_download_process():
         return None
 
     def mark_one_resource_download_success(a_resource: ytorrent_objects.A_Resource):
+        if a_resource.exposed_seeder_tracker_address != None:
+            YTORRENT_CONFIG.tracker_ip_or_url_list += [a_resource.exposed_seeder_tracker_address]
         database_excutor_for_local_service.A_Resource.update(
             old_item_filter=ytorrent_objects.A_Resource(file_or_folder_hash=a_resource.file_or_folder_hash),
-            new_item=ytorrent_objects.A_Resource(download_complete=True)
+            new_item=ytorrent_objects.A_Resource(download_complete=True, exposed_seeder_tracker_address=YTORRENT_CONFIG.exposed_seeder_tracker_address)
         )
 
     def mark_one_file_download_success(a_whole_file: ytorrent_objects.A_Whole_File, a_resource: ytorrent_objects.A_Resource):
@@ -551,7 +553,7 @@ def local_background_download_process():
         a_resource.file_download_status_list[target_index] = True
         database_excutor_for_local_service.A_Resource.update(
             old_item_filter=ytorrent_objects.A_Resource(file_or_folder_hash=a_resource.file_or_folder_hash),
-            new_item=ytorrent_objects.A_Resource(file_download_status_list=a_resource.file_download_status_list, exposed_seeder_tracker_address=YTORRENT_CONFIG.exposed_seeder_tracker_address)
+            new_item=ytorrent_objects.A_Resource(file_download_status_list=a_resource.file_download_status_list)
         )
         print(f"Download complete marked")
         print()
