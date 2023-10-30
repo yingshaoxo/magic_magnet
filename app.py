@@ -65,6 +65,7 @@ database_excutor_for_remote_service = Yingshaoxo_Database_Excutor_ytorrent_serve
 database_excutor_for_local_service = Yingshaoxo_Database_Excutor_ytorrent_server_and_client_protocol(database_base_folder=local_database_path, use_sqlite=False)
 
 
+# For now, the ytorrent_config object will not synchronize between processes and threads
 YTORRENT_CONFIG = ytorrent_objects.Ytorrent_Config(
     default_remote_service_port=1111,
     exposed_seeder_tracker_address=None, # we may need to automatically get the public ip address, so it would be http://0.0.0.0:1111
@@ -316,6 +317,19 @@ class Ytorrent_Remote_Service(ytorrent_server_and_client_protocol_pure_python_rp
                     _current_time_in_timestamp=time_.get_current_timestamp_in_10_digits_format()
                 ))
             default_response.success = True
+        except Exception as e:
+            print(f"Error: {e}")
+            #default_response.error = str(e)
+            #default_response.success = False
+
+        return default_response
+
+    def get_shared_tracker_list(self, headers: dict[str, str], item: ytorrent_objects.Get_Shared_Tracker_List_Request) -> ytorrent_objects.Get_Shared_Tracker_List_Response:
+        default_response = ytorrent_objects.Get_Shared_Tracker_List_Response()
+
+        try:
+            # You have to make YTORRENT_CONFIG a dynamic class, which means no matter I change it from where, multiprocess or threading, the change will across all places where used it. Similar to vue reactive() object, or proxy dict, or proxy class
+            default_response.tracker_ip_list = YTORRENT_CONFIG.tracker_ip_or_url_list
         except Exception as e:
             print(f"Error: {e}")
             #default_response.error = str(e)
