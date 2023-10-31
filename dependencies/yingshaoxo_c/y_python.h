@@ -566,13 +566,85 @@ typedef struct Type_Ypython_General Type_Ypython_General;
 struct Type_Ypython_General {
     bool is_none;
     char *type;
+
     Type_Ypython_Bool *bool_;
     Type_Ypython_Float *float_;
     Type_Ypython_Int *int_;
     Type_Ypython_String *string_;
     Type_Ypython_List *list_;
     Type_Ypython_Dict *dict_;
+
+    bool (*function_is_equal)(Type_Ypython_General *element_1, Type_Ypython_General *element_2);
 };
+
+bool Type_Ypython_General_is_equal(Type_Ypython_General *element_1, Type_Ypython_General *element_2) {
+    if (element_1->is_none && element_2->is_none) {
+        return true;
+    }
+    else if ((!(element_1->is_none)) && (element_2->is_none)) {
+        return false;
+    }
+    else if ((element_1->is_none) && (!(element_2->is_none))) {
+        return false;
+    } else {
+        if ((element_1->bool_ != NULL) && (element_2->bool_ != NULL)) {
+            if (element_1->bool_->is_none && element_2->bool_->is_none) {
+                return true;
+            } else if ((element_1->bool_->is_none) && (!element_2->bool_->is_none)) {
+                return false;
+            } else if ((!element_1->bool_->is_none) && (element_2->bool_->is_none)) {
+                return false;
+            } else if ((!element_1->bool_->is_none) && (!element_2->bool_->is_none)) {
+                if (element_1->bool_->value == element_2->bool_->value) {
+                    return true;
+                }
+            }
+        }
+
+        if ((element_1->float_ != NULL) && (element_2->float_ != NULL)) {
+            if (element_1->float_->is_none && element_2->float_->is_none) {
+                return true;
+            } else if ((element_1->float_->is_none) && (!element_2->float_->is_none)) {
+                return false;
+            } else if ((!element_1->float_->is_none) && (element_2->float_->is_none)) {
+                return false;
+            } else if ((!element_1->float_->is_none) && (!element_2->float_->is_none)) {
+                if (element_1->float_->value == element_2->float_->value) {
+                    return true;
+                }
+            }
+        }
+
+        if ((element_1->int_ != NULL) && (element_2->int_ != NULL)) {
+            if (element_1->int_->is_none && element_2->int_->is_none) {
+                return true;
+            } else if ((element_1->int_->is_none) && (!element_2->int_->is_none)) {
+                return false;
+            } else if ((!element_1->int_->is_none) && (element_2->int_->is_none)) {
+                return false;
+            } else if ((!element_1->int_->is_none) && (!element_2->int_->is_none)) {
+                if (element_1->int_->value == element_2->int_->value) {
+                    return true;
+                }
+            }
+        }
+
+        if ((element_1->string_ != NULL) && (element_2->string_ != NULL)) {
+            if (element_1->string_->is_none && element_2->string_->is_none) {
+                return true;
+            } else if ((element_1->string_->is_none) && (!element_2->string_->is_none)) {
+                return false;
+            } else if ((!element_1->string_->is_none) && (element_2->string_->is_none)) {
+                return false;
+            } else if ((!element_1->string_->is_none) && (!element_2->string_->is_none)) {
+                if (element_1->string_->function_is_equal(element_1->string_, element_2->string_)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
 
 Type_Ypython_General *Ypython_General() {
     Type_Ypython_General *new_value;
@@ -587,6 +659,8 @@ Type_Ypython_General *Ypython_General() {
     new_value->string_ = NULL;
     new_value->list_ = NULL;
     new_value->dict_ = NULL;
+
+    new_value->function_is_equal = &Type_Ypython_General_is_equal;
 
     return new_value;
 }
@@ -607,9 +681,9 @@ struct Type_Ypython_List {
     Type_Ypython_General* *value;
     unsigned long long length;
 
-    Type_Ypython_List *(*Type_Ypython_List_append)(Type_Ypython_List *self, Type_Ypython_General *an_element);
-    Type_Ypython_List *(*Type_Ypython_List_delete)(Type_Ypython_List *self, unsigned long long index);
-    Type_Ypython_List *(*Type_Ypython_List_insert)(Type_Ypython_List *self, unsigned long long index, Type_Ypython_General *an_element);
+    Type_Ypython_List *(*function_append)(Type_Ypython_List *self, Type_Ypython_General *an_element);
+    Type_Ypython_List *(*function_delete)(Type_Ypython_List *self, unsigned long long index);
+    Type_Ypython_List *(*function_insert)(Type_Ypython_List *self, unsigned long long index, Type_Ypython_General *an_element);
 };
 
 Type_Ypython_List *Ypython_List();
@@ -691,9 +765,9 @@ Type_Ypython_List *Ypython_List() {
     new_list_value->length = 0;
     new_list_value->value = malloc(sizeof(Type_Ypython_General*) * new_list_value->length);
 
-    new_list_value->Type_Ypython_List_append = &Type_Ypython_List_append;
-    new_list_value->Type_Ypython_List_delete = &Type_Ypython_List_delete;
-    new_list_value->Type_Ypython_List_insert = &Type_Ypython_List_insert;
+    new_list_value->function_append = &Type_Ypython_List_append;
+    new_list_value->function_delete = &Type_Ypython_List_delete;
+    new_list_value->function_insert = &Type_Ypython_List_insert;
 
     return new_list_value;
 }
@@ -706,7 +780,34 @@ typedef struct Type_Ypython_Dict Type_Ypython_Dict;
 struct Type_Ypython_Dict {
     bool is_none;
     char *type;
+
+    Type_Ypython_List* keys;
+    Type_Ypython_List* values;
 };
+
+void Type_Ypython_Dict_set(Type_Ypython_Dict *self, Type_Ypython_String *a_key, Type_Ypython_General *a_value) {
+    if (self->is_none) {
+        return;
+    } 
+
+    /*
+    Type_Ypython_List *new_list_value = Ypython_List();
+
+    new_list_value->length = self->length + 1;
+    new_list_value->value = malloc(sizeof(Type_Ypython_General*) * new_list_value->length);
+
+    // Copy the existing elements from the original list
+    for (unsigned long long i = 0; i < new_list_value->length; i++) {
+        if (i < index) {
+            new_list_value->value[i] = self->value[i];
+        } else if (i == index) {
+            new_list_value->value[i] = an_element;
+        } else {
+            new_list_value->value[i] = self->value[i-1];
+        }
+    }
+    */
+}
 
 Type_Ypython_Dict *Ypython_Dict() {
     Type_Ypython_Dict *new_value;
@@ -714,6 +815,9 @@ Type_Ypython_Dict *Ypython_Dict() {
 
     new_value->is_none = false;
     new_value -> type = (char *)"dict";
+
+    new_value->keys = Ypython_List();
+    new_value->values = Ypython_List();
 
     return new_value;
 }

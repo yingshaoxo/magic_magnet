@@ -138,10 +138,33 @@ int main()
     Type_Ypython_String *a_string_3 = Ypython_String("element in list");
     general_variable_2->string_ = a_string_3;
 
-    a_list = a_list->Type_Ypython_List_append(a_list, general_variable_2);
+    a_list = a_list->function_append(a_list, general_variable_2);
     ypython_print(a_list->value[0]->string_->value);
 
-    a_list = a_list->Type_Ypython_List_delete(a_list, 0);
-    a_list = a_list->Type_Ypython_List_insert(a_list, 0, general_variable_2);
+    a_list = a_list->function_delete(a_list, 0);
+    a_list = a_list->function_insert(a_list, 0, general_variable_2);
     ypython_print(a_list->value[0]->string_->value);
+
+    //////////////////////////////////////////////////////
+    
+    print_seperator("General type compare Test");
+
+    Type_Ypython_General *general_variable_3 = Ypython_General();
+    Type_Ypython_String *a_string_4 = Ypython_String("element in list");
+    general_variable_3->string_ = a_string_4;
+
+    Type_Ypython_General *general_variable_4 = Ypython_General();
+    Type_Ypython_String *a_string_5 = Ypython_String("element in list");
+    general_variable_4->string_ = a_string_5;
+
+    if (general_variable_4->function_is_equal(general_variable_3, general_variable_4) == false) {
+        ypython_print("Error in general type compare");
+    }
+
+    Type_Ypython_String *a_string_6 = Ypython_String("jilkjalsdhfkj in list");
+    general_variable_4->string_ = a_string_6;
+
+    if (general_variable_4->function_is_equal(general_variable_3, general_variable_4) == true) {
+        ypython_print("Error in general type compare");
+    }
 }
