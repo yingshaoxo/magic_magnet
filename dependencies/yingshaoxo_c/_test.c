@@ -205,4 +205,15 @@ int main()
             ypython_print(temp->string_->value);
         }
     }
+
+    ypython_print("for sublist: ");
+
+    a_list = a_dict->keys->function_sublist(a_dict->keys, 0, 1);
+    a_list->function_start_iteration(a_list);
+    while (a_list->iteration_not_done) {
+        Type_Ypython_General *temp = a_list->function_get_current_node(a_list);
+        if (!temp->is_none) {
+            ypython_print(temp->string_->value);
+        }
+    }
 }

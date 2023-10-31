@@ -696,6 +696,7 @@ struct Type_Ypython_List {
     void (*function_insert)(Type_Ypython_List *self, long long index, Type_Ypython_General *an_element);
     void (*function_set)(Type_Ypython_List *self, long long index, Type_Ypython_General *an_element);
     Type_Ypython_General* (*function_get)(Type_Ypython_List *self, long long index);
+    Type_Ypython_List* (*function_sublist)(Type_Ypython_List *self, long long start_index, long long end_index);
     void (*function_start_iteration)(Type_Ypython_List *self);
     Type_Ypython_General* (*function_get_current_node)(Type_Ypython_List *self);
 };
@@ -896,6 +897,44 @@ Type_Ypython_General* Type_Ypython_List_get(Type_Ypython_List *self, long long i
     return default_element;
 }
 
+Type_Ypython_List* Type_Ypython_List_sublist(Type_Ypython_List *self, long long start_index, long long end_index) {
+    Type_Ypython_List *default_list = Ypython_List();
+    default_list->is_none = true;
+
+    if (start_index > end_index) {
+        return default_list;
+    }
+
+    if (self->is_none || ((start_index < 0) || (end_index > self->length))) {
+        return default_list;
+    }
+
+    int i = 0;
+    LinkedListNode *current_node = self->head;
+    LinkedListNode *previous = NULL;
+
+    if (current_node == NULL) {
+        // 0 elements inside;
+        return default_list;
+    }
+
+    default_list->is_none = false;
+  
+    while (current_node != NULL) {
+        if ((i >= start_index) && (i < end_index)) {
+            default_list->function_append(default_list, current_node->value);
+        } 
+        if (i >= end_index) {
+            break;
+        }
+        previous = current_node;
+        current_node = current_node->next;
+        i++;
+    }
+
+    return default_list;
+}
+
 void Type_Ypython_List_start_iteration(Type_Ypython_List *self) {
     if (self->is_none) {
         return;
@@ -945,6 +984,7 @@ Type_Ypython_List *Ypython_List() {
     new_list_value->function_insert = &Type_Ypython_List_insert;
     new_list_value->function_set = &Type_Ypython_List_set;
     new_list_value->function_get = &Type_Ypython_List_get;
+    new_list_value->function_sublist = &Type_Ypython_List_sublist;
     new_list_value->function_start_iteration = &Type_Ypython_List_start_iteration;
     new_list_value->function_get_current_node = &Type_Ypython_List_get_current_node;
 
