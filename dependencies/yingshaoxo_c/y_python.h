@@ -323,6 +323,29 @@ For example, str, double, int, bool, dict, list and so on
 */
 
 /*
+Forward declarations
+*/
+typedef struct Type_Ypython_None Type_Ypython_None;
+typedef struct Type_Ypython_String Type_Ypython_String;
+typedef struct Type_Ypython_Bool Type_Ypython_Bool;
+typedef struct Type_Ypython_Int Type_Ypython_Int;
+typedef struct Type_Ypython_Float Type_Ypython_Float;
+typedef struct Type_Ypython_General Type_Ypython_General;
+typedef struct _Ypython_Linked_List_Node _Ypython_Linked_List_Node;
+typedef struct Type_Ypython_List Type_Ypython_List;
+typedef struct Type_Ypython_Dict Type_Ypython_Dict;
+
+Type_Ypython_None *Ypython_None();
+Type_Ypython_Bool *Ypython_Bool(bool value);
+Type_Ypython_String *Ypython_String(char *value);
+Type_Ypython_Int *Ypython_Int(long long value);
+Type_Ypython_Float *Ypython_Float(long double value);
+Type_Ypython_General *Ypython_General();
+Type_Ypython_List *Ypython_List();
+Type_Ypython_Dict *Ypython_Dict();
+
+
+/*
 None type
 */
 typedef struct Type_Ypython_None Type_Ypython_None;
@@ -351,19 +374,28 @@ typedef struct Type_Ypython_String Type_Ypython_String;
 struct Type_Ypython_String {
     bool is_none;
     char *type;
-    char *value;
 
-    Type_Ypython_String *(*function_add)(Type_Ypython_String *self, Type_Ypython_String *another_string);
+    char *value;
+    long long length;
+
+    Type_Ypython_String* (*function_add)(Type_Ypython_String *self, Type_Ypython_String *another_string);
     bool (*function_is_equal)(Type_Ypython_String *self, Type_Ypython_String *another_string);
+    //Type_Ypython_List *(*function_split)(Type_Ypython_String *self, Type_Ypython_String *seperator_string);
+    //Type_Ypython_String *(*function_join)(Type_Ypython_String *self, Type_Ypython_List *string_list, Type_Ypython_String *seperator_string);
+    Type_Ypython_String *(*function_strip)(Type_Ypython_String *self, Type_Ypython_String *characters);
+    bool (*function_startswith)(Type_Ypython_String *self, Type_Ypython_String *a_string);
+    long long (*function_length)(Type_Ypython_String *self);
+    bool (*function_is_substring)(Type_Ypython_String *self, Type_Ypython_String *a_string);
+    Type_Ypython_String *(*function_substring)(Type_Ypython_String *self, long long start_index, long long end_index);
 };
 
 Type_Ypython_String *Ypython_String(char *value);
-
 Type_Ypython_String *Type_Ypython_String_add(Type_Ypython_String *self, Type_Ypython_String *another_string) {
     Type_Ypython_String *new_string_value = Ypython_String((char *)"");
 
     if (self->is_none || another_string->is_none) {
         new_string_value->value = (char *)"";
+        new_string_value->length = strlen(new_string_value->value);
         new_string_value->is_none = true;
     } else {
         new_string_value->is_none = false;
@@ -373,6 +405,7 @@ Type_Ypython_String *Type_Ypython_String_add(Type_Ypython_String *self, Type_Ypy
         snprintf(new_chars_value, total_length+1, "%s%s", self->value, another_string->value);
 
         new_string_value->value = new_chars_value;
+        new_string_value->length = strlen(new_string_value->value);
     }
 
     return new_string_value;
@@ -393,14 +426,109 @@ bool Type_Ypython_String_is_equal(Type_Ypython_String *self, Type_Ypython_String
         } else {
             return false;
         }   
-        /*
-        if (_ypython_string_compare(self->value, another_string->value) == 0) {
-            return true;
-        } else {
+    }
+}
+
+//Type_Ypython_List *Type_Ypython_String_split(Type_Ypython_String *self, Type_Ypython_String *seperator_string) {
+    /*
+    Type_Ypython_List *result_list = Ypython_List();
+
+    char *token;
+    char *str = self->value;
+    char *sep = seperator_string->value;
+
+    token = strtok(str, sep);
+    while(token != NULL) {
+        Type_Ypython_String *new_string = Ypython_String("");
+        new_string->value = strdup(token);
+
+        Type_Ypython_General *a_general_variable = Ypython_General();
+        a_general_variable->string_ = new_string;
+
+        result_list->function_append(result_list, a_general_variable);
+
+        token = strtok(NULL, sep);
+    }
+
+    return result_list;
+    */
+    //return NULL;
+//}
+
+/*
+Type_Ypython_String *Type_Ypython_String_join(Type_Ypython_String *self, Type_Ypython_List *string_list, Type_Ypython_String *seperator_string) {
+    return NULL;
+}
+*/
+
+Type_Ypython_String *Type_Ypython_String_substring(Type_Ypython_String *self, long long start_index, long long end_index) {
+    Type_Ypython_String *default_string = Ypython_String("");
+    default_string->is_none = true;
+
+    if (start_index > end_index) {
+        return default_string;
+    }
+
+    if (self->is_none || ((start_index < 0) || (end_index > self->length))) {
+        return default_string;
+    }
+
+    end_index -= 1;
+
+    char *str = self->value;
+    long long result_len = end_index - start_index + 1;
+    char *result = (char *)malloc((result_len + 1) * sizeof(char));
+    strncpy(result, str + start_index, result_len);
+    result[result_len] = '\0';
+
+    return Ypython_String(result);
+}
+
+bool Type_Ypython_String_is_substring(Type_Ypython_String *self, Type_Ypython_String *a_string) {
+    char *str = self->value;
+    char *substring = a_string->value;
+    return _ypython_find_the_first_sub_string_in_a_string(str, substring) != NULL;
+}
+
+Type_Ypython_String *Type_Ypython_String_strip(Type_Ypython_String *self, Type_Ypython_String *characters) {
+    long long len = strlen(self->value);
+    char *str = self->value;
+
+    long long start = 0;
+    long long end = len - 1;
+
+    if (characters != NULL) {
+        char *ch = characters->value;
+
+        while (start < len && strchr(ch, str[start]) != NULL) {
+            start++;
+        }
+
+        while (end >= start && strchr(ch, str[end]) != NULL) {
+            end--;
+        }
+    }
+
+    return self->function_substring(self, start, end+1);
+}
+
+bool Type_Ypython_String_startswith(Type_Ypython_String *self, Type_Ypython_String *a_string) {
+    char *str = self->value;
+    char *prefix = a_string->value;
+    int str_len = strlen(str);
+    int prefix_len = strlen(prefix);
+
+    if (str_len < prefix_len) {
+        return false;
+    }
+
+    for (int i = 0; i < prefix_len; i++) {
+        if (str[i] != prefix[i]) {
             return false;
         }
-        */
     }
+
+    return true;
 }
 
 Type_Ypython_String *Ypython_String(char *value) {
@@ -411,9 +539,16 @@ Type_Ypython_String *Ypython_String(char *value) {
     new_string_value->type = (char *)"string";
 
     new_string_value->value = value;
+    new_string_value->length = strlen(value);
 
     new_string_value->function_add = &Type_Ypython_String_add;
     new_string_value->function_is_equal = &Type_Ypython_String_is_equal;
+    //new_string_value->function_split = &Type_Ypython_String_split;
+    //new_string_value->function_join = &Type_Ypython_String_join;
+    new_string_value->function_substring = &Type_Ypython_String_substring;
+    new_string_value->function_is_substring = &Type_Ypython_String_is_substring;
+    new_string_value->function_strip = &Type_Ypython_String_strip;
+    new_string_value->function_startswith = &Type_Ypython_String_startswith;
 
     return new_string_value;
 }

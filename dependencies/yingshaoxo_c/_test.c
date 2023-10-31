@@ -12,7 +12,7 @@ void print_seperator(const char * test_name) {
     } else {
         _ypython_print_formated_string("Test %d: %s", test_number, test_name);
     }
-    ypython_print("\n\n---------------\n");
+    ypython_print("\n\n↓\n");
 }
 
 
@@ -216,4 +216,42 @@ int main()
             ypython_print(temp->string_->value);
         }
     }
+
+
+    //////////////////////////////////////////////////////
+    
+    print_seperator("startswith Test");
+
+    Type_Ypython_String *a_string_10 = Ypython_String("yingshaoxo2");
+    Type_Ypython_String *a_string_11 = Ypython_String("yingsh");
+    if (!a_string_10->function_startswith(a_string_10, a_string_11)) {
+        ypython_print("Error: startswith not work");
+    }
+
+
+    //////////////////////////////////////////////////////
+    
+    print_seperator("strip Test");
+
+    Type_Ypython_String *a_string_12 = Ypython_String("yingshaoxo2");
+    Type_Ypython_String *a_string_13 = Ypython_String("2y");
+    ypython_print(a_string_12->function_strip(a_string_12, a_string_13)->value);
+
+    //////////////////////////////////////////////////////
+    
+    print_seperator("is_sub_string Test");
+
+    Type_Ypython_String *a_string_14 = Ypython_String("yingshaoxo2");
+    Type_Ypython_String *a_string_15 = Ypython_String("shao");
+    if (a_string_14->function_is_substring(a_string_14, a_string_15)) {
+        ypython_print("ok");
+    }
+
+
+    //////////////////////////////////////////////////////
+    
+    print_seperator("sub_string Test");
+
+    Type_Ypython_String *a_string_16 = Ypython_String("yingshaoxo2");
+    ypython_print(a_string_16->function_substring(a_string_16, 0, 11)->value);
 }
