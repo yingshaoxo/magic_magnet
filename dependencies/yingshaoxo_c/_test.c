@@ -136,21 +136,12 @@ int main()
 
     Type_Ypython_General *general_variable_2 = Ypython_General();
     Type_Ypython_String *a_string_3 = Ypython_String("element in list");
-    general_variable->string_ = a_string_3;
+    general_variable_2->string_ = a_string_3;
 
-    a_list->value = general_variable_2;
+    a_list = a_list->Type_Ypython_List_append(a_list, general_variable_2);
+    ypython_print(a_list->value[0]->string_->value);
 
-    size_t length_1 = sizeof(a_list->value[0].string_->value);
-    size_t length_2 = sizeof(a_string_3->value);
-    _ypython_print_formated_string("%d == %d\n", length_1, length_2);
-    //ypython_print(a_list->value[0].string_->value);
-
-    //ypython_print("test will fail, because I made some bug in here. and I don't know how to fix it.");
-
-    //a_general_variable->string_ = a_string_2;
-    //ypython_print(a_general_variable->string_->value);
-
-    // if (!(a_general_variable->string_->function_is_equal(Ypython_String(a_general_variable->string_->type), Ypython_String("string")))) {
-    //     ypython_print("type should be 'string'");
-    // }
+    a_list = a_list->Type_Ypython_List_delete(a_list, 0);
+    a_list = a_list->Type_Ypython_List_insert(a_list, 0, general_variable_2);
+    ypython_print(a_list->value[0]->string_->value);
 }

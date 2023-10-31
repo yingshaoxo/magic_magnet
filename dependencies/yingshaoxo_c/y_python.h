@@ -604,10 +604,12 @@ struct Type_Ypython_List {
     bool is_none;
     char *type;
 
-    Type_Ypython_General *value;
+    Type_Ypython_General* *value;
     unsigned long long length;
 
     Type_Ypython_List *(*Type_Ypython_List_append)(Type_Ypython_List *self, Type_Ypython_General *an_element);
+    Type_Ypython_List *(*Type_Ypython_List_delete)(Type_Ypython_List *self, unsigned long long index);
+    Type_Ypython_List *(*Type_Ypython_List_insert)(Type_Ypython_List *self, unsigned long long index, Type_Ypython_General *an_element);
 };
 
 Type_Ypython_List *Ypython_List();
@@ -619,7 +621,61 @@ Type_Ypython_List *Type_Ypython_List_append(Type_Ypython_List *self, Type_Ypytho
         return new_list_value;
     } else {
         new_list_value->length = self->length + 1;
-        new_list_value->value = (Type_Ypython_General *)malloc(sizeof(Type_Ypython_General) * new_list_value->length);
+        new_list_value->value = malloc(sizeof(Type_Ypython_General*) * new_list_value->length);
+
+        // Copy the existing elements from the original list
+        for (unsigned long long i = 0; i < self->length; i++) {
+            new_list_value->value[i] = self->value[i];
+        }
+
+        // Append the new element to the end of the list
+        new_list_value->value[new_list_value->length - 1] = an_element;
+    }
+
+    return new_list_value;
+}
+
+Type_Ypython_List *Type_Ypython_List_delete(Type_Ypython_List *self, unsigned long long index) {
+    Type_Ypython_List *new_list_value = Ypython_List();
+
+    if (self->is_none) {
+        new_list_value->is_none = true;
+        return new_list_value;
+    } else {
+        new_list_value->length = self->length - 1;
+        new_list_value->value = malloc(sizeof(Type_Ypython_General*) * new_list_value->length);
+
+        // Copy the existing elements from the original list
+        for (unsigned long long i = 0; i < self->length; i++) {
+            if (i != index) {
+                new_list_value->value[i] = self->value[i];
+            }
+        }
+    }
+
+    return new_list_value;
+}
+
+Type_Ypython_List *Type_Ypython_List_insert(Type_Ypython_List *self, unsigned long long index, Type_Ypython_General *an_element) {
+    Type_Ypython_List *new_list_value = Ypython_List();
+
+    if (self->is_none) {
+        new_list_value->is_none = true;
+        return new_list_value;
+    } else {
+        new_list_value->length = self->length + 1;
+        new_list_value->value = malloc(sizeof(Type_Ypython_General*) * new_list_value->length);
+
+        // Copy the existing elements from the original list
+        for (unsigned long long i = 0; i < new_list_value->length; i++) {
+            if (i < index) {
+                new_list_value->value[i] = self->value[i];
+            } else if (i == index) {
+                new_list_value->value[i] = an_element;
+            } else {
+                new_list_value->value[i] = self->value[i-1];
+            }
+        }
     }
 
     return new_list_value;
@@ -632,10 +688,12 @@ Type_Ypython_List *Ypython_List() {
     new_list_value->is_none = false;
     new_list_value->type = (char *)"list";
 
-    new_list_value->length = 1;
-    new_list_value->value = (Type_Ypython_General *)malloc(sizeof(Type_Ypython_General) * new_list_value->length);
+    new_list_value->length = 0;
+    new_list_value->value = malloc(sizeof(Type_Ypython_General*) * new_list_value->length);
 
     new_list_value->Type_Ypython_List_append = &Type_Ypython_List_append;
+    new_list_value->Type_Ypython_List_delete = &Type_Ypython_List_delete;
+    new_list_value->Type_Ypython_List_insert = &Type_Ypython_List_insert;
 
     return new_list_value;
 }
