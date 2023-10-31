@@ -327,9 +327,9 @@ None type
 */
 typedef struct Type_Ypython_None Type_Ypython_None;
 struct Type_Ypython_None {
-    int value;
     bool is_none;
     char *type;
+    int value;
 };
 
 Type_Ypython_None *Ypython_None() {
@@ -349,9 +349,10 @@ String type
 */
 typedef struct Type_Ypython_String Type_Ypython_String;
 struct Type_Ypython_String {
-    char *value;
     bool is_none;
     char *type;
+    char *value;
+
     Type_Ypython_String *(*function_add)(Type_Ypython_String *self, Type_Ypython_String *another_string);
     bool (*function_is_equal)(Type_Ypython_String *self, Type_Ypython_String *another_string);
 };
@@ -422,9 +423,9 @@ Bool type
 */
 typedef struct Type_Ypython_Bool Type_Ypython_Bool;
 struct Type_Ypython_Bool {
-    bool value;
     bool is_none;
     char *type;
+    bool value;
 };
 
 Type_Ypython_Bool *Ypython_Bool(bool value) {
@@ -444,9 +445,10 @@ Int type
 */
 typedef struct Type_Ypython_Int Type_Ypython_Int;
 struct Type_Ypython_Int {
-    long long value;
     bool is_none;
     char *type;
+    long long value;
+
     Type_Ypython_Int *(*function_add)(Type_Ypython_Int *self, Type_Ypython_Int *another_int);
     Type_Ypython_Int *(*function_multiply)(Type_Ypython_Int *self, Type_Ypython_Int *another_int);
 };
@@ -501,9 +503,10 @@ Float type
 */
 typedef struct Type_Ypython_Float Type_Ypython_Float;
 struct Type_Ypython_Float {
-    long double value;
     bool is_none;
     char *type;
+    long double value;
+
     Type_Ypython_Float *(*function_add)(Type_Ypython_Float *self, Type_Ypython_Float *another_float);
     Type_Ypython_Float *(*function_multiply)(Type_Ypython_Float *self, Type_Ypython_Float *another_float);
 };
