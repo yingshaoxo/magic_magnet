@@ -679,11 +679,12 @@ struct Type_Ypython_List {
     char *type;
 
     Type_Ypython_General* *value;
-    unsigned long long length;
+    long long length;
 
     Type_Ypython_List *(*function_append)(Type_Ypython_List *self, Type_Ypython_General *an_element);
-    Type_Ypython_List *(*function_delete)(Type_Ypython_List *self, unsigned long long index);
-    Type_Ypython_List *(*function_insert)(Type_Ypython_List *self, unsigned long long index, Type_Ypython_General *an_element);
+    Type_Ypython_Int *(*function_index)(Type_Ypython_List *self, Type_Ypython_General *an_element);
+    Type_Ypython_List *(*function_delete)(Type_Ypython_List *self, long long index);
+    Type_Ypython_List *(*function_insert)(Type_Ypython_List *self, long long index, Type_Ypython_General *an_element);
 };
 
 Type_Ypython_List *Ypython_List();
@@ -698,7 +699,7 @@ Type_Ypython_List *Type_Ypython_List_append(Type_Ypython_List *self, Type_Ypytho
         new_list_value->value = malloc(sizeof(Type_Ypython_General*) * new_list_value->length);
 
         // Copy the existing elements from the original list
-        for (unsigned long long i = 0; i < self->length; i++) {
+        for (long long i = 0; i < self->length; i++) {
             new_list_value->value[i] = self->value[i];
         }
 
@@ -709,7 +710,26 @@ Type_Ypython_List *Type_Ypython_List_append(Type_Ypython_List *self, Type_Ypytho
     return new_list_value;
 }
 
-Type_Ypython_List *Type_Ypython_List_delete(Type_Ypython_List *self, unsigned long long index) {
+Type_Ypython_Int *Type_Ypython_List_index(Type_Ypython_List *self, Type_Ypython_General *an_element) {
+    Type_Ypython_Int *index = Ypython_Int(-1);
+
+    if (self->is_none) {
+        index->is_none = true;
+        return index;
+    } else {
+        for (long long i = 0; i < self->length; i++) {
+            if (an_element->function_is_equal(an_element, self->value[i])) {
+                index->value = i;
+                return index;
+            }
+        }
+    }
+
+    index->is_none = true;
+    return index;
+}
+
+Type_Ypython_List *Type_Ypython_List_delete(Type_Ypython_List *self, long long index) {
     Type_Ypython_List *new_list_value = Ypython_List();
 
     if (self->is_none) {
@@ -720,7 +740,7 @@ Type_Ypython_List *Type_Ypython_List_delete(Type_Ypython_List *self, unsigned lo
         new_list_value->value = malloc(sizeof(Type_Ypython_General*) * new_list_value->length);
 
         // Copy the existing elements from the original list
-        for (unsigned long long i = 0; i < self->length; i++) {
+        for (long long i = 0; i < self->length; i++) {
             if (i != index) {
                 new_list_value->value[i] = self->value[i];
             }
@@ -730,7 +750,7 @@ Type_Ypython_List *Type_Ypython_List_delete(Type_Ypython_List *self, unsigned lo
     return new_list_value;
 }
 
-Type_Ypython_List *Type_Ypython_List_insert(Type_Ypython_List *self, unsigned long long index, Type_Ypython_General *an_element) {
+Type_Ypython_List *Type_Ypython_List_insert(Type_Ypython_List *self, long long index, Type_Ypython_General *an_element) {
     Type_Ypython_List *new_list_value = Ypython_List();
 
     if (self->is_none) {
@@ -741,7 +761,7 @@ Type_Ypython_List *Type_Ypython_List_insert(Type_Ypython_List *self, unsigned lo
         new_list_value->value = malloc(sizeof(Type_Ypython_General*) * new_list_value->length);
 
         // Copy the existing elements from the original list
-        for (unsigned long long i = 0; i < new_list_value->length; i++) {
+        for (long long i = 0; i < new_list_value->length; i++) {
             if (i < index) {
                 new_list_value->value[i] = self->value[i];
             } else if (i == index) {
@@ -766,6 +786,7 @@ Type_Ypython_List *Ypython_List() {
     new_list_value->value = malloc(sizeof(Type_Ypython_General*) * new_list_value->length);
 
     new_list_value->function_append = &Type_Ypython_List_append;
+    new_list_value->function_index = &Type_Ypython_List_index;
     new_list_value->function_delete = &Type_Ypython_List_delete;
     new_list_value->function_insert = &Type_Ypython_List_insert;
 
@@ -775,6 +796,7 @@ Type_Ypython_List *Ypython_List() {
 /*
 Dict type
 //You can use 2 dimentional array, one to store the key, another to store the value, and two array uses same index and length.
+//Key will always be Type_Ypython_String type inside Type_Ypython_General
 */
 typedef struct Type_Ypython_Dict Type_Ypython_Dict;
 struct Type_Ypython_Dict {
@@ -783,6 +805,9 @@ struct Type_Ypython_Dict {
 
     Type_Ypython_List* keys;
     Type_Ypython_List* values;
+
+    void (*function_set)(Type_Ypython_Dict *self, Type_Ypython_String *a_key, Type_Ypython_General *a_value);
+    Type_Ypython_General *(*function_get)(Type_Ypython_Dict *self, Type_Ypython_String *a_key);
 };
 
 void Type_Ypython_Dict_set(Type_Ypython_Dict *self, Type_Ypython_String *a_key, Type_Ypython_General *a_value) {
@@ -790,23 +815,49 @@ void Type_Ypython_Dict_set(Type_Ypython_Dict *self, Type_Ypython_String *a_key, 
         return;
     } 
 
-    /*
-    Type_Ypython_List *new_list_value = Ypython_List();
-
-    new_list_value->length = self->length + 1;
-    new_list_value->value = malloc(sizeof(Type_Ypython_General*) * new_list_value->length);
-
-    // Copy the existing elements from the original list
-    for (unsigned long long i = 0; i < new_list_value->length; i++) {
-        if (i < index) {
-            new_list_value->value[i] = self->value[i];
-        } else if (i == index) {
-            new_list_value->value[i] = an_element;
-        } else {
-            new_list_value->value[i] = self->value[i-1];
-        }
+    if (self->keys == NULL || self->values == NULL) {
+        return;
     }
-    */
+
+    Type_Ypython_General *the_key = Ypython_General();
+    the_key->string_ = a_key;
+
+    Type_Ypython_Int *index = self->keys->function_index(self->keys, the_key);
+    if (index->is_none) {
+        // we don't have this key in this dict, add a new one
+        self->keys = self->keys->function_append(self->keys, the_key);
+        self->values = self->values->function_append(self->values, a_value);
+    } else {
+        // we have this key in this dict, update old one
+        self->values->value[index->value] = a_value;
+    }
+}
+
+Type_Ypython_General *Type_Ypython_Dict_get(Type_Ypython_Dict *self, Type_Ypython_String *a_key) {
+    Type_Ypython_General *result = Ypython_General();
+
+    if (self->is_none) {
+        result->is_none = true;
+        return result;
+    } 
+
+    if (self->keys == NULL || self->values == NULL) {
+        result->is_none = true;
+        return result;
+    }
+
+    Type_Ypython_General *the_key = Ypython_General();
+    the_key->string_ = a_key;
+
+    Type_Ypython_Int *index = self->keys->function_index(self->keys, the_key);
+    if (index->is_none) {
+        // we don't have this key in this dict, return none
+        result->is_none = true;
+        return result;
+    } else {
+        // we have this key in this dict, return the value
+        return self->values->value[index->value];
+    }
 }
 
 Type_Ypython_Dict *Ypython_Dict() {
@@ -818,6 +869,9 @@ Type_Ypython_Dict *Ypython_Dict() {
 
     new_value->keys = Ypython_List();
     new_value->values = Ypython_List();
+
+    new_value->function_set = &Type_Ypython_Dict_set;
+    new_value->function_get = &Type_Ypython_Dict_get;
 
     return new_value;
 }

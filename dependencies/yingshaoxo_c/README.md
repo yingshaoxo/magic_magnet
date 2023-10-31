@@ -19,3 +19,7 @@ They all require the c coder use relative header importing like `#include "./fol
 1. You have to do a parse on the main.c file, so that you could get the `#include "<.h_file_path>"`, then inside of that .h file folder, you do a search for the same file name .c file, you put the .c file code at the bottom of the .h file.
 2. Then you do parse again on the .h_file_path to get more ".h header file paths", the final data you get is like a node tree, for each folder level, you have a lot of .h files.
 3. put all code from bottom(deepest in tree) to top, into a single .h file, then use gcc to do the compile.
+
+## How to improve the current c?
+1. Make a built_in garbage collector.
+2. Make a built_in auto_string, auto_int, auto_float, auto_list, auto_dict, auto_bool, auto_none which could auto doing extention and sharing without you to maully control the memory. Similar to Python built-in data type.

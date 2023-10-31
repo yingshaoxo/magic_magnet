@@ -145,6 +145,9 @@ int main()
     a_list = a_list->function_insert(a_list, 0, general_variable_2);
     ypython_print(a_list->value[0]->string_->value);
 
+    Type_Ypython_Int *index = a_list->function_index(a_list, general_variable_2);
+    _ypython_print_formated_string("%lld\n", index->value);
+
     //////////////////////////////////////////////////////
     
     print_seperator("General type compare Test");
@@ -167,4 +170,19 @@ int main()
     if (general_variable_4->function_is_equal(general_variable_3, general_variable_4) == true) {
         ypython_print("Error in general type compare");
     }
+
+    //////////////////////////////////////////////////////
+    
+    print_seperator("Dict Test");
+
+    Type_Ypython_General *general_variable_7 = Ypython_General();
+    Type_Ypython_String *a_string_7 = Ypython_String("yingshaoxo");
+    general_variable_7->string_ = a_string_7;
+
+    Type_Ypython_Dict *a_dict = Ypython_Dict();
+    Type_Ypython_String *the_key_7 = Ypython_String("god");
+    a_dict->function_set(a_dict, the_key_7, general_variable_7);
+
+    Type_Ypython_General *general_variable_8 = a_dict->function_get(a_dict, the_key_7);
+    ypython_print(general_variable_8->string_->value);
 }
