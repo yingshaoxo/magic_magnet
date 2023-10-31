@@ -672,10 +672,10 @@ A good list data type has to have:
 1. infinity list size increasing in real time
 2. automatically garbage collection
 */
-typedef struct LinkedListNode LinkedListNode;
-struct LinkedListNode {
+typedef struct _Ypython_Linked_List_Node _Ypython_Linked_List_Node;
+struct _Ypython_Linked_List_Node {
     Type_Ypython_General *value;
-    LinkedListNode *next;
+    _Ypython_Linked_List_Node *next;
 };
 
 typedef struct Type_Ypython_List Type_Ypython_List;
@@ -683,12 +683,12 @@ struct Type_Ypython_List {
     bool is_none;
     char *type;
 
-    LinkedListNode *head;
-    LinkedListNode *tail;
+    _Ypython_Linked_List_Node *head;
+    _Ypython_Linked_List_Node *tail;
     long long length;
 
     bool iteration_not_done;
-    LinkedListNode *_current_iterate_node;
+    _Ypython_Linked_List_Node *_current_iterate_node;
 
     void (*function_append)(Type_Ypython_List *self, Type_Ypython_General *an_element);
     Type_Ypython_Int *(*function_index)(Type_Ypython_List *self, Type_Ypython_General *an_element);
@@ -702,8 +702,8 @@ struct Type_Ypython_List {
 };
 
 // Function to create a new linked list node
-LinkedListNode *_Ypython_create_list_Node(Type_Ypython_General *value) {
-    LinkedListNode *newNode = (LinkedListNode *)malloc(sizeof(LinkedListNode));
+_Ypython_Linked_List_Node *_Ypython_create_list_Node(Type_Ypython_General *value) {
+    _Ypython_Linked_List_Node *newNode = (_Ypython_Linked_List_Node *)malloc(sizeof(_Ypython_Linked_List_Node));
     newNode->value = value;
     newNode->next = NULL;
     return newNode;
@@ -715,7 +715,7 @@ void Type_Ypython_List_append(Type_Ypython_List *self, Type_Ypython_General *an_
         return;
     }
 
-    LinkedListNode *newNode = _Ypython_create_list_Node(an_element);
+    _Ypython_Linked_List_Node *newNode = _Ypython_create_list_Node(an_element);
 
     if (self->head == NULL) {
         self->head = newNode;
@@ -737,7 +737,7 @@ Type_Ypython_Int *Type_Ypython_List_index(Type_Ypython_List *self, Type_Ypython_
         return index;
     } else {
         int i = 0;
-        LinkedListNode *current_node = self->head;
+        _Ypython_Linked_List_Node *current_node = self->head;
 
         if (current_node == NULL) {
             // 0 elements inside;
@@ -765,8 +765,8 @@ void Type_Ypython_List_delete(Type_Ypython_List *self, long long index) {
     }
 
     int i = 0;
-    LinkedListNode *current_node = self->head;
-    LinkedListNode *previous = NULL;
+    _Ypython_Linked_List_Node *current_node = self->head;
+    _Ypython_Linked_List_Node *previous = NULL;
 
     if (current_node == NULL) {
         // 0 elements inside;
@@ -797,12 +797,12 @@ void Type_Ypython_List_insert(Type_Ypython_List *self, long long index, Type_Ypy
     }
 
     int i = 0;
-    LinkedListNode *current_node = self->head;
-    LinkedListNode *previous = NULL;
+    _Ypython_Linked_List_Node *current_node = self->head;
+    _Ypython_Linked_List_Node *previous = NULL;
 
     if (current_node == NULL) {
         // 0 elements inside;
-        LinkedListNode *newNode = _Ypython_create_list_Node(an_element);
+        _Ypython_Linked_List_Node *newNode = _Ypython_create_list_Node(an_element);
         self->head = newNode;
         self->length = self->length + 1;
         return;
@@ -810,7 +810,7 @@ void Type_Ypython_List_insert(Type_Ypython_List *self, long long index, Type_Ypy
   
     while (current_node != NULL) {
         if (i == index) {
-            LinkedListNode *newNode = _Ypython_create_list_Node(an_element);
+            _Ypython_Linked_List_Node *newNode = _Ypython_create_list_Node(an_element);
           
             if (previous == NULL) {
                 // Inserting at the head
@@ -836,8 +836,8 @@ void Type_Ypython_List_set(Type_Ypython_List *self, long long index, Type_Ypytho
     }
 
     int i = 0;
-    LinkedListNode *current_node = self->head;
-    LinkedListNode *previous = NULL;
+    _Ypython_Linked_List_Node *current_node = self->head;
+    _Ypython_Linked_List_Node *previous = NULL;
 
     if (current_node == NULL) {
         // 0 elements inside;
@@ -846,7 +846,7 @@ void Type_Ypython_List_set(Type_Ypython_List *self, long long index, Type_Ypytho
   
     while (current_node != NULL) {
         if (i == index) {
-            LinkedListNode *newNode = _Ypython_create_list_Node(an_element);
+            _Ypython_Linked_List_Node *newNode = _Ypython_create_list_Node(an_element);
           
             if (previous == NULL) {
                 // Inserting at the head
@@ -876,8 +876,8 @@ Type_Ypython_General* Type_Ypython_List_get(Type_Ypython_List *self, long long i
     }
 
     int i = 0;
-    LinkedListNode *current_node = self->head;
-    LinkedListNode *previous = NULL;
+    _Ypython_Linked_List_Node *current_node = self->head;
+    _Ypython_Linked_List_Node *previous = NULL;
 
     if (current_node == NULL) {
         // 0 elements inside;
@@ -910,8 +910,8 @@ Type_Ypython_List* Type_Ypython_List_sublist(Type_Ypython_List *self, long long 
     }
 
     int i = 0;
-    LinkedListNode *current_node = self->head;
-    LinkedListNode *previous = NULL;
+    _Ypython_Linked_List_Node *current_node = self->head;
+    _Ypython_Linked_List_Node *previous = NULL;
 
     if (current_node == NULL) {
         // 0 elements inside;
