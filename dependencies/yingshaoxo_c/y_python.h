@@ -667,12 +667,345 @@ Type_Ypython_General *Ypython_General() {
 
 /*
 List type
+
+A good list data type has to have:
+1. infinity list size increasing in real time
+2. automatically garbage collection
+*/
+typedef struct LinkedListNode LinkedListNode;
+struct LinkedListNode {
+    Type_Ypython_General *value;
+    LinkedListNode *next;
+};
+
+typedef struct Type_Ypython_List Type_Ypython_List;
+struct Type_Ypython_List {
+    bool is_none;
+    char *type;
+
+    LinkedListNode *head;
+    LinkedListNode *tail;
+    long long length;
+
+    void (*function_append)(Type_Ypython_List *self, Type_Ypython_General *an_element);
+    Type_Ypython_Int *(*function_index)(Type_Ypython_List *self, Type_Ypython_General *an_element);
+    void (*function_delete)(Type_Ypython_List *self, long long index);
+    void (*function_insert)(Type_Ypython_List *self, long long index, Type_Ypython_General *an_element);
+    void (*function_set)(Type_Ypython_List *self, long long index, Type_Ypython_General *an_element);
+    Type_Ypython_General* (*function_get)(Type_Ypython_List *self, long long index);
+};
+
+// Function to create a new linked list node
+LinkedListNode *_Ypython_create_list_Node(Type_Ypython_General *value) {
+    LinkedListNode *newNode = (LinkedListNode *)malloc(sizeof(LinkedListNode));
+    newNode->value = value;
+    newNode->next = NULL;
+    return newNode;
+}
+
+Type_Ypython_List *Ypython_List();
+void Type_Ypython_List_append(Type_Ypython_List *self, Type_Ypython_General *an_element) {
+    if (self->is_none) {
+        return;
+    }
+
+    LinkedListNode *newNode = _Ypython_create_list_Node(an_element);
+
+    if (self->head == NULL) {
+        self->head = newNode;
+        self->tail = newNode;
+    } else {
+        self->tail->next = newNode;
+        self->tail = newNode;
+    }
+
+    self->length = self->length + 1;
+    return;
+}
+
+Type_Ypython_Int *Type_Ypython_List_index(Type_Ypython_List *self, Type_Ypython_General *an_element) {
+    Type_Ypython_Int *index = Ypython_Int(-1);
+
+    if (self->is_none) {
+        index->is_none = true;
+        return index;
+    } else {
+        int i = 0;
+        LinkedListNode *current_node = self->head;
+
+        if (current_node == NULL) {
+            // 0 elements inside;
+            index->is_none = true;
+            return index;
+        }
+
+        while (current_node != NULL) {
+            if (current_node->value->function_is_equal(current_node->value, an_element)) {
+                index->value = i;
+                return index;
+            }
+            current_node = current_node->next;
+            i++;
+        }
+    }
+
+    index->is_none = true;
+    return index;
+}
+
+void Type_Ypython_List_delete(Type_Ypython_List *self, long long index) {
+    if (self->is_none || ((index < 0) || (index >= self->length))) {
+        return;
+    }
+
+    int i = 0;
+    LinkedListNode *current_node = self->head;
+    LinkedListNode *previous = NULL;
+
+    if (current_node == NULL) {
+        // 0 elements inside;
+        return;
+    }
+  
+    while (current_node != NULL) {
+        if (i == index) {
+            if (previous == NULL) {
+                // Deleting the head node
+                self->head = current_node->next;
+            } else {
+                previous->next = current_node->next;
+            }
+            self->length = self->length - 1;
+            free(current_node);
+            break;
+        }
+        previous = current_node;
+        current_node = current_node->next;
+        i++;
+    }
+}
+
+void Type_Ypython_List_insert(Type_Ypython_List *self, long long index, Type_Ypython_General *an_element) {
+    if (self->is_none || ((index < 0) || (index > self->length))) {
+        return;
+    }
+
+    int i = 0;
+    LinkedListNode *current_node = self->head;
+    LinkedListNode *previous = NULL;
+
+    if (current_node == NULL) {
+        // 0 elements inside;
+        LinkedListNode *newNode = _Ypython_create_list_Node(an_element);
+        self->head = newNode;
+        self->length = self->length + 1;
+        return;
+    }
+  
+    while (current_node != NULL) {
+        if (i == index) {
+            LinkedListNode *newNode = _Ypython_create_list_Node(an_element);
+          
+            if (previous == NULL) {
+                // Inserting at the head
+                newNode->next = self->head;
+                self->head = newNode;
+            } else {
+                newNode->next = current_node;
+                previous->next = newNode;
+            }
+            
+            self->length = self->length + 1;
+            break;
+        }
+        previous = current_node;
+        current_node = current_node->next;
+        i++;
+    }
+}
+
+void Type_Ypython_List_set(Type_Ypython_List *self, long long index, Type_Ypython_General *an_element) {
+    if (self->is_none || ((index < 0) || (index >= self->length))) {
+        return;
+    }
+
+    int i = 0;
+    LinkedListNode *current_node = self->head;
+    LinkedListNode *previous = NULL;
+
+    if (current_node == NULL) {
+        // 0 elements inside;
+        return;
+    }
+  
+    while (current_node != NULL) {
+        if (i == index) {
+            LinkedListNode *newNode = _Ypython_create_list_Node(an_element);
+          
+            if (previous == NULL) {
+                // Inserting at the head
+                newNode->next = self->head->next;
+                free(self->head);
+                self->head = newNode;
+            } else {
+                previous->next = newNode;
+                newNode->next = current_node->next;
+                free(current_node);
+            }
+            
+            break;
+        }
+        previous = current_node;
+        current_node = current_node->next;
+        i++;
+    }
+}
+
+Type_Ypython_General* Type_Ypython_List_get(Type_Ypython_List *self, long long index) {
+    Type_Ypython_General *default_element = Ypython_General();
+    default_element->is_none = true;
+
+    if (self->is_none || ((index < 0) || (index >= self->length))) {
+        return default_element;
+    }
+
+    int i = 0;
+    LinkedListNode *current_node = self->head;
+    LinkedListNode *previous = NULL;
+
+    if (current_node == NULL) {
+        // 0 elements inside;
+        return default_element;
+    }
+  
+    while (current_node != NULL) {
+        if (i == index) {
+            free(default_element);
+            return current_node->value;
+        }
+        previous = current_node;
+        current_node = current_node->next;
+        i++;
+    }
+
+    return default_element;
+}
+
+Type_Ypython_List *Ypython_List() {
+    Type_Ypython_List *new_list_value;
+    new_list_value = (Type_Ypython_List *)malloc(sizeof(Type_Ypython_List));
+
+    new_list_value->is_none = false;
+    new_list_value->type = (char *)"list";
+
+    new_list_value->head = NULL;
+    new_list_value->tail = NULL;
+    new_list_value->length = 0;
+
+    new_list_value->function_append = &Type_Ypython_List_append;
+    new_list_value->function_index = &Type_Ypython_List_index;
+    new_list_value->function_delete = &Type_Ypython_List_delete;
+    new_list_value->function_insert = &Type_Ypython_List_insert;
+    new_list_value->function_set = &Type_Ypython_List_set;
+    new_list_value->function_get = &Type_Ypython_List_get;
+
+    return new_list_value;
+}
+
+
+/*
+Dict type
+//You can use 2 dimentional array, one to store the key, another to store the value, and two array uses same index and length.
+//Key will always be Type_Ypython_String type inside Type_Ypython_General
+*/
+typedef struct Type_Ypython_Dict Type_Ypython_Dict;
+struct Type_Ypython_Dict {
+    bool is_none;
+    char *type;
+
+    Type_Ypython_List* keys;
+    Type_Ypython_List* values;
+
+    void (*function_set)(Type_Ypython_Dict *self, Type_Ypython_String *a_key, Type_Ypython_General *a_value);
+    Type_Ypython_General *(*function_get)(Type_Ypython_Dict *self, Type_Ypython_String *a_key);
+};
+
+void Type_Ypython_Dict_set(Type_Ypython_Dict *self, Type_Ypython_String *a_key, Type_Ypython_General *a_value) {
+    if (self->is_none) {
+        return;
+    } 
+
+    if (self->keys == NULL || self->values == NULL) {
+        return;
+    }
+
+    Type_Ypython_General *the_key = Ypython_General();
+    the_key->string_ = a_key;
+
+    Type_Ypython_Int *index = self->keys->function_index(self->keys, the_key);
+    if (index->is_none) {
+        // we don't have this key in this dict, add a new one
+        self->keys->function_append(self->keys, the_key);
+        self->values->function_append(self->values, a_value);
+    } else {
+        // we have this key in this dict, update old one
+        self->values->function_set(self->values, index->value, a_value);
+    }
+}
+
+Type_Ypython_General *Type_Ypython_Dict_get(Type_Ypython_Dict *self, Type_Ypython_String *a_key) {
+    Type_Ypython_General *result = Ypython_General();
+
+    if (self->is_none) {
+        result->is_none = true;
+        return result;
+    } 
+
+    if (self->keys == NULL || self->values == NULL) {
+        result->is_none = true;
+        return result;
+    }
+
+    Type_Ypython_General *the_key = Ypython_General();
+    the_key->string_ = a_key;
+
+    Type_Ypython_Int *index = self->keys->function_index(self->keys, the_key);
+    if (index->is_none) {
+        // we don't have this key in this dict, return none
+        result->is_none = true;
+        return result;
+    } else {
+        // we have this key in this dict, return the value
+        return self->values->function_get(self->values, index->value);
+    }
+}
+
+Type_Ypython_Dict *Ypython_Dict() {
+    Type_Ypython_Dict *new_value;
+    new_value = (Type_Ypython_Dict *)malloc(sizeof(Type_Ypython_Dict));
+
+    new_value->is_none = false;
+    new_value -> type = (char *)"dict";
+
+    new_value->keys = Ypython_List();
+    new_value->values = Ypython_List();
+
+    new_value->function_set = &Type_Ypython_Dict_set;
+    new_value->function_get = &Type_Ypython_Dict_get;
+
+    return new_value;
+}
+
+
+/*
+Old non_linked_list List type
 //https://dev.to/bekhruzniyazov/creating-a-python-like-list-in-c-4ebg
 
 A good list data type has to have:
 1. infinity list size increasing in real time
 2. automatically garbage collection
 */
+/*
 typedef struct Type_Ypython_List Type_Ypython_List;
 struct Type_Ypython_List {
     bool is_none;
@@ -792,86 +1125,5 @@ Type_Ypython_List *Ypython_List() {
 
     return new_list_value;
 }
-
-/*
-Dict type
-//You can use 2 dimentional array, one to store the key, another to store the value, and two array uses same index and length.
-//Key will always be Type_Ypython_String type inside Type_Ypython_General
 */
-typedef struct Type_Ypython_Dict Type_Ypython_Dict;
-struct Type_Ypython_Dict {
-    bool is_none;
-    char *type;
 
-    Type_Ypython_List* keys;
-    Type_Ypython_List* values;
-
-    void (*function_set)(Type_Ypython_Dict *self, Type_Ypython_String *a_key, Type_Ypython_General *a_value);
-    Type_Ypython_General *(*function_get)(Type_Ypython_Dict *self, Type_Ypython_String *a_key);
-};
-
-void Type_Ypython_Dict_set(Type_Ypython_Dict *self, Type_Ypython_String *a_key, Type_Ypython_General *a_value) {
-    if (self->is_none) {
-        return;
-    } 
-
-    if (self->keys == NULL || self->values == NULL) {
-        return;
-    }
-
-    Type_Ypython_General *the_key = Ypython_General();
-    the_key->string_ = a_key;
-
-    Type_Ypython_Int *index = self->keys->function_index(self->keys, the_key);
-    if (index->is_none) {
-        // we don't have this key in this dict, add a new one
-        self->keys = self->keys->function_append(self->keys, the_key);
-        self->values = self->values->function_append(self->values, a_value);
-    } else {
-        // we have this key in this dict, update old one
-        self->values->value[index->value] = a_value;
-    }
-}
-
-Type_Ypython_General *Type_Ypython_Dict_get(Type_Ypython_Dict *self, Type_Ypython_String *a_key) {
-    Type_Ypython_General *result = Ypython_General();
-
-    if (self->is_none) {
-        result->is_none = true;
-        return result;
-    } 
-
-    if (self->keys == NULL || self->values == NULL) {
-        result->is_none = true;
-        return result;
-    }
-
-    Type_Ypython_General *the_key = Ypython_General();
-    the_key->string_ = a_key;
-
-    Type_Ypython_Int *index = self->keys->function_index(self->keys, the_key);
-    if (index->is_none) {
-        // we don't have this key in this dict, return none
-        result->is_none = true;
-        return result;
-    } else {
-        // we have this key in this dict, return the value
-        return self->values->value[index->value];
-    }
-}
-
-Type_Ypython_Dict *Ypython_Dict() {
-    Type_Ypython_Dict *new_value;
-    new_value = (Type_Ypython_Dict *)malloc(sizeof(Type_Ypython_Dict));
-
-    new_value->is_none = false;
-    new_value -> type = (char *)"dict";
-
-    new_value->keys = Ypython_List();
-    new_value->values = Ypython_List();
-
-    new_value->function_set = &Type_Ypython_Dict_set;
-    new_value->function_get = &Type_Ypython_Dict_get;
-
-    return new_value;
-}

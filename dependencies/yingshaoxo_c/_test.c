@@ -138,26 +138,31 @@ int main()
     Type_Ypython_String *a_string_3 = Ypython_String("element in list");
     general_variable_2->string_ = a_string_3;
 
-    a_list = a_list->function_append(a_list, general_variable_2);
-    ypython_print(a_list->value[0]->string_->value);
+    a_list->function_append(a_list, general_variable_2);
+    ypython_print(a_list->function_get(a_list, 0)->string_->value);
 
-    a_list = a_list->function_delete(a_list, 0);
-    a_list = a_list->function_insert(a_list, 0, general_variable_2);
-    ypython_print(a_list->value[0]->string_->value);
+    _ypython_print_formated_string("%lld\n", a_list->length);
+    a_list->function_delete(a_list, 0);
+    _ypython_print_formated_string("%lld\n", a_list->length);
+    a_list->function_insert(a_list, 0, general_variable_2);
+    _ypython_print_formated_string("%lld\n", a_list->length);
+    ypython_print(a_list->function_get(a_list, 0)->string_->value);
+    /*
 
     Type_Ypython_Int *index = a_list->function_index(a_list, general_variable_2);
     _ypython_print_formated_string("%lld\n", index->value);
+    */
 
     //////////////////////////////////////////////////////
     
     print_seperator("General type compare Test");
 
     Type_Ypython_General *general_variable_3 = Ypython_General();
-    Type_Ypython_String *a_string_4 = Ypython_String("element in list");
+    Type_Ypython_String *a_string_4 = Ypython_String("ok");
     general_variable_3->string_ = a_string_4;
 
     Type_Ypython_General *general_variable_4 = Ypython_General();
-    Type_Ypython_String *a_string_5 = Ypython_String("element in list");
+    Type_Ypython_String *a_string_5 = Ypython_String("ok");
     general_variable_4->string_ = a_string_5;
 
     if (general_variable_4->function_is_equal(general_variable_3, general_variable_4) == false) {
