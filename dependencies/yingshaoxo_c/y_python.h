@@ -687,12 +687,17 @@ struct Type_Ypython_List {
     LinkedListNode *tail;
     long long length;
 
+    bool iteration_not_done;
+    LinkedListNode *_current_iterate_node;
+
     void (*function_append)(Type_Ypython_List *self, Type_Ypython_General *an_element);
     Type_Ypython_Int *(*function_index)(Type_Ypython_List *self, Type_Ypython_General *an_element);
     void (*function_delete)(Type_Ypython_List *self, long long index);
     void (*function_insert)(Type_Ypython_List *self, long long index, Type_Ypython_General *an_element);
     void (*function_set)(Type_Ypython_List *self, long long index, Type_Ypython_General *an_element);
     Type_Ypython_General* (*function_get)(Type_Ypython_List *self, long long index);
+    void (*function_start_iteration)(Type_Ypython_List *self);
+    Type_Ypython_General* (*function_get_current_node)(Type_Ypython_List *self);
 };
 
 // Function to create a new linked list node
@@ -891,6 +896,38 @@ Type_Ypython_General* Type_Ypython_List_get(Type_Ypython_List *self, long long i
     return default_element;
 }
 
+void Type_Ypython_List_start_iteration(Type_Ypython_List *self) {
+    if (self->is_none) {
+        return;
+    }
+
+    self->_current_iterate_node = self->head;
+    self->iteration_not_done = true;
+
+    if (self->_current_iterate_node == NULL) {
+        self->iteration_not_done = false;
+    }
+}
+
+Type_Ypython_General* (Type_Ypython_List_get_current_node)(Type_Ypython_List *self) {
+    Type_Ypython_General *default_element = Ypython_General();
+    default_element->is_none = true;
+
+    if (self->is_none) {
+        self->iteration_not_done = false;
+        return default_element;
+    }
+
+    if (self->_current_iterate_node == NULL) {
+        self->iteration_not_done = false;
+        return default_element;
+    }
+
+    default_element = self->_current_iterate_node->value;
+    self->_current_iterate_node = self->_current_iterate_node->next;
+    return default_element;
+}
+
 Type_Ypython_List *Ypython_List() {
     Type_Ypython_List *new_list_value;
     new_list_value = (Type_Ypython_List *)malloc(sizeof(Type_Ypython_List));
@@ -908,6 +945,8 @@ Type_Ypython_List *Ypython_List() {
     new_list_value->function_insert = &Type_Ypython_List_insert;
     new_list_value->function_set = &Type_Ypython_List_set;
     new_list_value->function_get = &Type_Ypython_List_get;
+    new_list_value->function_start_iteration = &Type_Ypython_List_start_iteration;
+    new_list_value->function_get_current_node = &Type_Ypython_List_get_current_node;
 
     return new_list_value;
 }

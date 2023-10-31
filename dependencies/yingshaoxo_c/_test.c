@@ -190,4 +190,19 @@ int main()
 
     Type_Ypython_General *general_variable_8 = a_dict->function_get(a_dict, the_key_7);
     ypython_print(general_variable_8->string_->value);
+
+    Type_Ypython_General *general_variable_9 = Ypython_General();
+    Type_Ypython_String *a_string_9 = Ypython_String("yingshaoxo2");
+    general_variable_9->string_ = a_string_9;
+
+    Type_Ypython_String *the_key_8 = Ypython_String("404 censorship");
+    a_dict->function_set(a_dict, the_key_8, general_variable_9);
+
+    a_dict->keys->function_start_iteration(a_dict->keys);
+    while (a_dict->keys->iteration_not_done) {
+        Type_Ypython_General *temp = a_dict->keys->function_get_current_node(a_dict->keys);
+        if (!temp->is_none) {
+            ypython_print(temp->string_->value);
+        }
+    }
 }
