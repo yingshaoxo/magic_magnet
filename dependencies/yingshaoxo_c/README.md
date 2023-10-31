@@ -23,3 +23,8 @@ They all require the c coder use relative header importing like `#include "./fol
 ## How to improve the current c?
 1. Make a built_in garbage collector.
 2. Make a built_in auto_string, auto_int, auto_float, auto_list, auto_dict, auto_bool, auto_none which could auto doing extention and sharing without you to maully control the memory. Similar to Python built-in data type.
+
+## Todo in this repo
+* add a function called "to_string" to all of my types. int, float, bool, none, list, dict class, it needs to have a 'to_string' and 'from_string' functions, so that when I call 'to_string', it will print out a json_compatible string, when I call 'from_string', it will convert json string to memory object
+
+* Use those types to make `json_loads(text)` and `json_dumps(dict)` functions
