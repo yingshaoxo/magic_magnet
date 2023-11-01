@@ -836,7 +836,7 @@ struct Type_Ypython_List {
     Type_Ypython_General* (*function_get)(Type_Ypython_List *self, long long index);
     Type_Ypython_List* (*function_sublist)(Type_Ypython_List *self, long long start_index, long long end_index);
     void (*function_start_iteration)(Type_Ypython_List *self);
-    Type_Ypython_General* (*function_get_current_node)(Type_Ypython_List *self);
+    Type_Ypython_General* (*function_get_next_one)(Type_Ypython_List *self);
 };
 
 // Function to create a new linked list node
@@ -1086,7 +1086,7 @@ void Type_Ypython_List_start_iteration(Type_Ypython_List *self) {
     }
 }
 
-Type_Ypython_General* (Type_Ypython_List_get_current_node)(Type_Ypython_List *self) {
+Type_Ypython_General* (Type_Ypython_List_get_next_one)(Type_Ypython_List *self) {
     Type_Ypython_General *default_element = Ypython_General();
     default_element->is_none = true;
 
@@ -1124,7 +1124,7 @@ Type_Ypython_List *Ypython_List() {
     new_list_value->function_get = &Type_Ypython_List_get;
     new_list_value->function_sublist = &Type_Ypython_List_sublist;
     new_list_value->function_start_iteration = &Type_Ypython_List_start_iteration;
-    new_list_value->function_get_current_node = &Type_Ypython_List_get_current_node;
+    new_list_value->function_get_next_one = &Type_Ypython_List_get_next_one;
 
     return new_list_value;
 }

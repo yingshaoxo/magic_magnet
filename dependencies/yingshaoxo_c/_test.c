@@ -200,7 +200,7 @@ int main()
 
     a_dict->keys->function_start_iteration(a_dict->keys);
     while (a_dict->keys->iteration_not_done) {
-        Type_Ypython_General *temp = a_dict->keys->function_get_current_node(a_dict->keys);
+        Type_Ypython_General *temp = a_dict->keys->function_get_next_one(a_dict->keys);
         if (!temp->is_none) {
             ypython_print(temp->string_->value);
         }
@@ -211,7 +211,7 @@ int main()
     a_list = a_dict->keys->function_sublist(a_dict->keys, 0, 1);
     a_list->function_start_iteration(a_list);
     while (a_list->iteration_not_done) {
-        Type_Ypython_General *temp = a_list->function_get_current_node(a_list);
+        Type_Ypython_General *temp = a_list->function_get_next_one(a_list);
         if (!temp->is_none) {
             ypython_print(temp->string_->value);
         }
