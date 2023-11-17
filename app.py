@@ -11,6 +11,9 @@ import os
 import re
 import json
 
+if os.path.exists("../../auto_everything"):
+    sys.path.insert(1, "../../")
+
 from auto_everything.terminal import Terminal, Terminal_User_Interface
 from auto_everything.python import Python
 from auto_everything.disk import Disk, Store
@@ -72,10 +75,10 @@ YTORRENT_CONFIG = ytorrent_objects.Ytorrent_Config(
     default_remote_service_port=1111,
     exposed_seeder_tracker_address=None, # we may need to automatically get the public ip address, so it would be http://0.0.0.0:1111
     default_local_service_port=1212,
-    file_segments_memory_pool_size_in_mb=500,
-    max_acceptable_file_segment_size_in_mb=2,
+    file_segments_memory_pool_size_in_mb=200,
+    max_acceptable_file_segment_size_in_mb=1,
     polling_waiting_time_in_seconds=60,
-    tracker_ip_or_url_list=[],
+    tracker_ip_or_url_list=["https://ytorrent.ai-tools-online.xyz"],
     download_folder_path=terminal.fix_path("~/Downloads/Ytorrent_Download", startswith=True)
 )
 json_configuration_folder_path = terminal.fix_path("~/.ytorrent", startswith=True)
@@ -136,6 +139,8 @@ YTORRENT_CONFIG.download_folder_path = terminal.fix_path(YTORRENT_CONFIG.downloa
 disk.create_a_folder(disk.get_directory_path(YTORRENT_CONFIG.download_folder_path))
 
 YTORRENT_CONFIG.tracker_ip_or_url_list = [one for one in YTORRENT_CONFIG.tracker_ip_or_url_list if one.strip()!=""]
+YTORRENT_CONFIG.tracker_ip_or_url_list = list(set(YTORRENT_CONFIG.tracker_ip_or_url_list))
+print(YTORRENT_CONFIG.tracker_ip_or_url_list)
 
 
 def refactor_database():
@@ -825,6 +830,7 @@ class Ytorrent_Client():
             print("\n\n_______________\n\n")
             print(f"We'll launch a tracker service at {self.remote_service_address}")
             print(f"We'll launch a user interface service at {self.local_service_address}")
+            print(f"> You have to disable some DNS service 'Browser Integrity Check' to allow python http client to access your API service.")
             print("\n\n_______________\n\n")
             print(f"Please open another shell/bash tab to execute your command again.")
             print()
@@ -979,7 +985,7 @@ class Ytorrent_Client():
                     ))
                     self.download(magic_magnet_link)
                 else:
-                    raise Exception(f"The file/folder you want to download is already complete: {magic_magnet_link}\nYou can found it at {one.root_folder}")
+                    raise Exception(f"The file/folder you want to download is already complete: {magic_magnet_link}\nYou can found it at {target_path}")
             else:
                 raise Exception(f"The file/folder you want to download is already in downloading: {magic_magnet_link}\nYou can found it at {one.root_folder}")
 
