@@ -24,7 +24,7 @@ python = Python()
 io_ = IO()
 time_ = Time()
 core_store = Store("magic_magnet_core_channel")
-data_store = Store("magic_magnet_data_channel")
+#data_store = Store("magic_magnet_data_channel")
 
 #import generated_yrpc.ytorrent_server_and_client_protocol_objects as ytorrent_server_and_client_protocol_objects
 import generated_yrpc.ytorrent_server_and_client_protocol_objects as ytorrent_objects
@@ -55,6 +55,7 @@ else:
 
 print(f"resource_basic_folder_path: {resource_basic_folder_path}")
 print(f"database_path: {the_database_path}")
+print(f"default download_path: ~/Downloads/Ytorrent_Download")
 print()
 disk.create_a_folder(the_database_path)
 remote_database_path = disk.join_paths(the_database_path, "remote_service")
@@ -964,6 +965,7 @@ class Ytorrent_Client():
             a_resource.root_folder = YTORRENT_CONFIG.download_folder_path
             database_excutor_for_local_service.A_Resource.add(item=a_resource)
             print("The download is started.")
+            print(f"You may found it later at: {a_resource.root_folder}")
         else:
             one = result_list[0]
             if one.download_complete == True:
@@ -976,9 +978,9 @@ class Ytorrent_Client():
                     ))
                     self.download(magic_magnet_link)
                 else:
-                    raise Exception(f"The file/folder you want to download is already complete: {magic_magnet_link}")
+                    raise Exception(f"The file/folder you want to download is already complete: {magic_magnet_link}\nYou can found it at {one.root_folder}")
             else:
-                raise Exception(f"The file/folder you want to download is already in downloading: {magic_magnet_link}")
+                raise Exception(f"The file/folder you want to download is already in downloading: {magic_magnet_link}\nYou can found it at {one.root_folder}")
 
     def stop(self):
         """
@@ -1009,7 +1011,7 @@ class Command_Line_Interface():
 
     def stop(self):
         """
-        Stop all service that related magic magnet software.
+        Stop all service that related to magic magnet software.
         """
         self.ytorrent_client.stop()
 
